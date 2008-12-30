@@ -19,6 +19,8 @@ public final class R {
     }
     public static final class string {
         public static final int app_name=0x7f030000;
+        public static final int menu_bigger=0x7f030002;
         public static final int menu_clear=0x7f030001;
+        public static final int menu_smaller=0x7f030003;
     }
 }

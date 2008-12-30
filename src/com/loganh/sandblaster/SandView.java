@@ -6,17 +6,25 @@ import android.view.MotionEvent;
 import android.view.SurfaceView;
 
 public class SandView extends SurfaceView {
-  static public float FPS = 20;
-  static public float SCALE = 1f / 8;
+  // Maximum FPS.
+  static final private float FPS = 20;
+
+  // Sorted from "biggest" (most coarse) to "smallest" (most granular).
+  static final private float[] SCALES = { 1f / 16, 1f / 8, 1f / 4 };
+
+  // Index of the scale to default to.
+  static final private int INITIAL_SCALE = 1;
 
   private SandBox sandbox;
   private SandBoxDriver driver;
   private SandBoxRenderer renderer;
   private PaletteView palette;
   private boolean penDown;
+  private int scaleIndex;
 
   public SandView(Context context, AttributeSet attrs) {
     super(context, attrs);
+    scaleIndex = INITIAL_SCALE;
     renderer = new SandBoxRenderer(getHolder());
   }
 
@@ -53,12 +61,32 @@ public class SandView extends SurfaceView {
     }
   }
 
+  public void makeBigger() {
+    if (scaleIndex > 0) {
+      scaleIndex--;
+      resetSandbox();
+    }
+  }
+
+  public void makeSmaller() {
+    if (scaleIndex < SCALES.length - 1) {
+      scaleIndex++;
+      resetSandbox();
+    }
+  }
+
+  synchronized private void resetSandbox() {
+    float scale = SCALES[scaleIndex];
+    Log.i("creating {0} x {1} sandbox", getWidth() * scale, getHeight() * scale);
+    stopDriver();
+    sandbox = new SandBox((int) (getWidth() * scale), (int) (getHeight() * scale));
+    startDriver();
+  }
+
   @Override
-  synchronized public void onLayout(boolean changed, int left, int top, int right, int bottom) {
+  public void onLayout(boolean changed, int left, int top, int right, int bottom) {
     if (sandbox == null) {
-      Log.i("creating {0} x {1} sandbox", getWidth() * SCALE, getHeight() * SCALE);
-      sandbox = new SandBox((int) (getWidth() * SCALE), (int) (getHeight() * SCALE));
-      startDriver();
+      resetSandbox();
     }
   }
 
@@ -87,5 +115,8 @@ public class SandView extends SurfaceView {
     if (palette != null && sandbox != null) {
       sandbox.setParticle(x, y, SandBox.ELEMENTS[palette.selected % SandBox.ELEMENTS.length]);
     }
+  }
+
+  public void setScale(float scale) {
   }
 }

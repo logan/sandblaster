@@ -8,6 +8,8 @@ import android.view.Window;
 
 public class SandActivity extends Activity {
   static final private int CLEAR = 0;
+  static final private int BIGGER = 1;
+  static final private int SMALLER = 2;
 
   SandView view;
   PaletteView palette;
@@ -44,6 +46,8 @@ public class SandActivity extends Activity {
   public boolean onCreateOptionsMenu(Menu menu) {
     super.onCreateOptionsMenu(menu);
     menu.add(0, CLEAR, 0, R.string.menu_clear);
+    menu.add(0, BIGGER, 0, R.string.menu_bigger);
+    menu.add(0, SMALLER, 0, R.string.menu_smaller);
     return true;
   }
 
@@ -52,6 +56,12 @@ public class SandActivity extends Activity {
     switch (item.getItemId()) {
       case CLEAR:
         view.clear();
+        return true;
+      case BIGGER:
+        view.makeBigger();
+        return true;
+      case SMALLER:
+        view.makeSmaller();
         return true;
     }
     return false;

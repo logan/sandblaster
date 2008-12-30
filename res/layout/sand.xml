@@ -5,7 +5,7 @@
     android:layout_height="fill_parent"
     android:layout_width="fill_parent">
 
-  <com.loganh.sand.SandView 
+  <com.loganh.sandblaster.SandView 
       android:id="@+id/sand"
       android:gravity="top"
       android:layout_weight="1"
@@ -13,7 +13,7 @@
       android:layout_height="200px"
       />
 
-  <com.loganh.sand.PaletteView
+  <com.loganh.sandblaster.PaletteView
       android:id="@+id/palette"
       android:gravity="bottom"
       android:layout_weight="0"
