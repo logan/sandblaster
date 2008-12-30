@@ -45,9 +45,9 @@ public class SandActivity extends Activity {
   @Override
   public boolean onCreateOptionsMenu(Menu menu) {
     super.onCreateOptionsMenu(menu);
-    menu.add(0, CLEAR, 0, R.string.menu_clear);
-    menu.add(0, BIGGER, 0, R.string.menu_bigger);
-    menu.add(0, SMALLER, 0, R.string.menu_smaller);
+    menu.add(0, CLEAR, 0, R.string.menu_clear).setIcon(R.drawable.clear);
+    menu.add(0, BIGGER, 0, R.string.menu_bigger).setIcon(R.drawable.bigger);
+    menu.add(0, SMALLER, 0, R.string.menu_smaller).setIcon(R.drawable.smaller);
     return true;
   }
 
