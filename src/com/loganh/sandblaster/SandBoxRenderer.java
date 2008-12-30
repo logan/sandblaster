@@ -35,18 +35,17 @@ public class SandBoxRenderer {
   }
 
   private void draw(SandBox sandbox, Canvas canvas) {
-    float r = Math.min(canvas.getWidth() / sandbox.getWidth(), canvas.getHeight() / sandbox.getHeight()) / 2;
+    float elemWidth = Math.min(canvas.getWidth() / sandbox.getWidth(), canvas.getHeight() / sandbox.getHeight());
     Paint paint = new Paint();
     paint.setColor(Color.BLACK);
     canvas.drawRect(0, 0, canvas.getWidth(), canvas.getHeight(), paint);
     synchronized (sandbox) {
       for (SandBox.Particle particle : sandbox) {
         if (particle.element != null) {
+          int cx = sandbox.toCanvasX(particle.x, canvas.getWidth());
+          int cy = sandbox.toCanvasY(particle.y, canvas.getHeight());
           paint.setColor(particle.element.color);
-          canvas.drawCircle(
-              sandbox.toCanvasX(particle.x, canvas.getWidth()) + r,
-              sandbox.toCanvasY(particle.y, canvas.getHeight()) + r,
-              r, paint);
+          canvas.drawRect(cx, cy, cx + elemWidth, cy + elemWidth, paint);
         } else {
           Log.e("particle with null element at {0}, {1}", particle.x, particle.y);
         }
