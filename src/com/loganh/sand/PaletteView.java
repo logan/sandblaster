@@ -1,0 +1,53 @@
+package com.loganh.sand;
+
+import android.content.Context;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Rect;
+import android.util.AttributeSet;
+import android.view.MotionEvent;
+import android.view.View;
+
+public class PaletteView extends View {
+
+  public int selected;
+
+  public PaletteView(Context context, AttributeSet attrs) {
+    super(context, attrs);
+  }
+
+  @Override
+  protected void onDraw(Canvas canvas) {
+    int elemWidth = (int) (getWidth() / SandBox.ELEMENTS.length);
+    int offset = 0;
+    Paint paint = new Paint();
+    for (Element element : SandBox.ELEMENTS) {
+      Rect rect = new Rect(offset * elemWidth + 2, 2, (offset + 1) * elemWidth - 2, (int) getHeight() - 2);
+      paint.setColor(element.color);
+      paint.setStyle(Paint.Style.FILL);
+      canvas.drawRect(rect, paint);
+      if (offset == selected) {
+        paint.setColor(Color.WHITE);
+      } else {
+        paint.setColor(Color.BLACK);
+      }
+      paint.setStyle(Paint.Style.STROKE);
+      paint.setStrokeWidth(2);
+      canvas.drawRect(rect, paint);
+      offset++;
+    }
+  }
+
+  @Override
+  public boolean onTouchEvent(MotionEvent event) {
+    if (event.getAction() == MotionEvent.ACTION_DOWN) {
+      int elemWidth = (int) (getWidth() / SandBox.ELEMENTS.length);
+      selected = (int) (event.getX() / elemWidth);
+      Log.i("selected now {0}", selected);
+      invalidate();
+      return true;
+    }
+    return false;
+  }
+}
