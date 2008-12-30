@@ -1,4 +1,4 @@
-package com.loganh.sand;
+package com.loganh.sandblaster;
 
 import android.content.Context;
 import android.util.AttributeSet;

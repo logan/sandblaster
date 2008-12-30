@@ -1,4 +1,4 @@
-package com.loganh.sand;
+package com.loganh.sandblaster;
 
 import java.util.HashMap;
 import java.util.HashSet;

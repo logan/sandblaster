@@ -1,4 +1,4 @@
-package com.loganh.sand;
+package com.loganh.sandblaster;
 
 import android.os.SystemClock;
 import android.view.SurfaceHolder;
