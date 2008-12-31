@@ -56,6 +56,6 @@ public class PaletteView extends View {
   }
 
   public Element getElement() {
-    return ELEMENTS[selected];
+    return ELEMENTS[selected % ELEMENTS.length];
   }
 }
