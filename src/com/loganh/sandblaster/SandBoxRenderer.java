@@ -42,8 +42,8 @@ public class SandBoxRenderer {
     synchronized (sandbox) {
       for (SandBox.Particle particle : sandbox) {
         if (particle.element != null) {
-          int cx = sandbox.toCanvasX(particle.x, canvas.getWidth());
-          int cy = sandbox.toCanvasY(particle.y, canvas.getHeight());
+          int cx = particle.canvasX;
+          int cy = particle.canvasY;
           float r = elemWidth / 2f;
           paint.setColor(particle.element.color);
           if (particle.element.mobile) {
@@ -56,8 +56,8 @@ public class SandBoxRenderer {
         }
       }
       for (SandBox.Source source : sandbox.getSources()) {
-        int x = sandbox.toCanvasX(source.x, canvas.getWidth());
-        int y = sandbox.toCanvasY(source.y, canvas.getHeight());
+        int x = sandbox.toCanvasX(source.x);
+        int y = sandbox.toCanvasY(source.y);
         paint.setColor(source.element.color);
         canvas.drawRect(x, y, x + elemWidth, y + elemWidth, paint);
       }

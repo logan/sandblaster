@@ -1,8 +1,10 @@
 package com.loganh.sandblaster;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Random;
@@ -14,16 +16,21 @@ import android.graphics.Point;
 
 public class SandBox implements Iterable<SandBox.Particle> {
 
+  private int canvasWidth;
+  private int canvasHeight;
+  private float scale;
   private int width;
   private int height;
   private Particle[][] particles;
-  private Map<Integer, Set<Integer> > activeCache;
   private Map<Point, Element> sources;
   private Random random;
 
-  public SandBox(int width, int height) {
-    this.width = width;
-    this.height = height;
+  public SandBox(int canvasWidth, int canvasHeight, float scale) {
+    this.canvasWidth = canvasWidth;
+    this.canvasHeight = canvasHeight;
+    this.scale = scale;
+    width = (int) (canvasWidth * scale);
+    height = (int) (canvasHeight * scale);
     random = new Random();
     clear();
   }
@@ -31,7 +38,6 @@ public class SandBox implements Iterable<SandBox.Particle> {
   synchronized public void clear() {
     sources = new HashMap();
     particles = new Particle[(int) width][(int) height];
-    activeCache = new HashMap();
     for (int x = 0; x < width; x++) {
       for (int y = 0; y < height; y++) {
         particles[x][y] = new Particle(x, y);
@@ -39,21 +45,21 @@ public class SandBox implements Iterable<SandBox.Particle> {
     }
   }
 
-  public int toCanvasX(float x, float canvasWidth) {
-    return Math.round(x * canvasWidth / width);
+  public int toCanvasX(float x) {
+    return Math.round(x / scale);
   }
 
-  public int toCanvasY(float y, float canvasHeight) {
+  public int toCanvasY(float y) {
     y = height - y - 1;
-    return Math.round(y * canvasHeight / height);
+    return Math.round(y / scale);
   }
 
-  public int fromCanvasX(float x, float canvasWidth) {
-    return Math.round(x * width / canvasWidth);
+  public int fromCanvasX(float x) {
+    return Math.round(x * scale);
   }
 
-  public int fromCanvasY(float y, float canvasHeight) {
-    return (int) height - Math.round(y * height / canvasHeight) - 1;
+  public int fromCanvasY(float y) {
+    return height - Math.round(y * scale) - 1;
   }
 
   public float getWidth() {
@@ -64,8 +70,14 @@ public class SandBox implements Iterable<SandBox.Particle> {
     return height;
   }
 
+  public float getScale() {
+    return scale;
+  }
+
   synchronized public void addSource(Element element, int x, int y) {
-    sources.put(new Point(x, y), element);
+    if (x >= 0 && y >= 0 && x < width && y < height) {
+      sources.put(new Point(x, y), element);
+    }
   }
 
   synchronized public void removeSource(int x, int y) {
@@ -110,38 +122,22 @@ public class SandBox implements Iterable<SandBox.Particle> {
     }
   }
 
-  private Set<Integer> getRowCache(int y) {
-    if (!activeCache.containsKey(y)) {
-      activeCache.put(y, new HashSet());
-    }
-    return activeCache.get(y);
-  }
-
-  private void removeActiveParticle(int x, int y) {
-    getRowCache(y).remove(x);
-  }
-
-  private void addActiveParticle(int x, int y) {
-    getRowCache(y).add(x);
-  }
-
   class Particle {
     public int x;
     public int y;
+    public int canvasX;
+    public int canvasY;
     public int lifetime;
     public Element element;
 
     public Particle(int x, int y) {
       this.x = x;
       this.y = y;
+      canvasX = toCanvasX(x);
+      canvasY = toCanvasY(y);
     }
 
     public void setElement(Element element) {
-      if (this.element != null && element == null) {
-        SandBox.this.removeActiveParticle(x, y);
-      } else if (this.element == null && element != null) {
-        SandBox.this.addActiveParticle(x, y);
-      }
       if (this.element != element) {
         this.element = element;
         lifetime = 0;
@@ -149,40 +145,16 @@ public class SandBox implements Iterable<SandBox.Particle> {
     }
   }
 
-  class ActiveParticleIterator implements Iterator<Particle> {
-
-    private int y;
-    private Iterator<Integer> rowIterator;
-
-    public ActiveParticleIterator() {
-      y = -1;
-      rowIterator = null;
-    }
-
-    public boolean hasNext() {
-      while (y < height && (rowIterator == null || !rowIterator.hasNext())) {
-        y++;
-        rowIterator = SandBox.this.getRowCache(y).iterator();
-      }
-      return y < height;
-    }
-
-    public Particle next() {
-      if (hasNext()) {
-        int x = rowIterator.next();
-        return particles[x][y];
-      } else {
-        throw new NoSuchElementException();
+  synchronized public Iterator<Particle> iterator() {
+    List result = new ArrayList();
+    for (int x = 0; x < width; x++) {
+      for (int y = 0; y < height; y++) {
+        if (particles[x][y].element != null) {
+          result.add(particles[x][y]);
+        }
       }
     }
-
-    public void remove() {
-      throw new UnsupportedOperationException();
-    }
-  }
-
-  public Iterator<Particle> iterator() {
-    return new ActiveParticleIterator();
+    return result.iterator();
   }
 
   synchronized public void update() {
@@ -191,18 +163,24 @@ public class SandBox implements Iterable<SandBox.Particle> {
     }
 
     for (int y = 0; y < height; y++) {
-      Integer[] xs = new Integer[0];
+      int[] xs = new int[width];
+      int nxs = 0;
       int xoffs = -1;
-      xs = getRowCache(y).toArray(xs);
-      if (random.nextBoolean()) {
-        xoffs = 1;
-        for (int i = 0; i < xs.length / 2; i++) {
-          int x = xs[i];
-          xs[i] = xs[xs.length - i - 1];
-          xs[xs.length - i - 1] = x;
+      for (int x = 0; x < width; x++) {
+        if (particles[x][y].element != null) {
+          xs[nxs++] = x;
         }
       }
-      for (int x : xs) {
+      if (random.nextBoolean()) {
+        xoffs = 1;
+        for (int i = 0; i < nxs / 2; i++) {
+          int x = xs[i];
+          xs[i] = xs[nxs - i - 1];
+          xs[nxs - i - 1] = x;
+        }
+      }
+      for (int i = 0; i < nxs; i++) {
+        int x = xs[i];
         Particle p = particles[x][y];
 
         // Transmutations.

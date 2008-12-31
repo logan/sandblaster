@@ -86,7 +86,7 @@ public class SandView extends SurfaceView {
     float scale = SCALES[scaleIndex];
     Log.i("creating {0} x {1} sandbox", getWidth() * scale, getHeight() * scale);
     stopDriver();
-    sandbox = new SandBox((int) (getWidth() * scale), (int) (getHeight() * scale));
+    sandbox = new SandBox((int) getWidth(), (int) getHeight(), scale);
     startDriver();
   }
 
@@ -110,28 +110,18 @@ public class SandView extends SurfaceView {
       penDownTime = SystemClock.uptimeMillis();
       lastPenX = event.getX();
       lastPenY = event.getY();
-      sandbox.addSource(
-          palette.getElement(),
-          sandbox.fromCanvasX(lastPenX, getWidth()),
-          sandbox.fromCanvasY(lastPenY, getHeight()));
+      sandbox.addSource(palette.getElement(), sandbox.fromCanvasX(lastPenX), sandbox.fromCanvasY(lastPenY));
       return true;
     } else if (penDown && event.getAction() == MotionEvent.ACTION_MOVE) {
       penDownTime = SystemClock.uptimeMillis();
-      sandbox.removeSource(
-          sandbox.fromCanvasX(lastPenX, getWidth()),
-          sandbox.fromCanvasY(lastPenY, getHeight()));
+      sandbox.removeSource(sandbox.fromCanvasX(lastPenX), sandbox.fromCanvasY(lastPenY));
       lastPenX = event.getX();
       lastPenY = event.getY();
-      sandbox.addSource(
-          palette.getElement(),
-          sandbox.fromCanvasX(lastPenX, getWidth()),
-          sandbox.fromCanvasY(lastPenY, getHeight()));
+      sandbox.addSource(palette.getElement(), sandbox.fromCanvasX(lastPenX), sandbox.fromCanvasY(lastPenY));
       return true;
     } else if (penDown && event.getAction() == MotionEvent.ACTION_UP) {
       if (SystemClock.uptimeMillis() - penDownTime < PEN_STICK_THRESHOLD) {
-        sandbox.removeSource(
-            sandbox.fromCanvasX(lastPenX, getWidth()),
-            sandbox.fromCanvasY(lastPenY, getHeight()));
+        sandbox.removeSource(sandbox.fromCanvasX(lastPenX), sandbox.fromCanvasY(lastPenY));
       }
       lastPenX = event.getX();
       lastPenY = event.getY();

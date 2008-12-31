@@ -8,7 +8,8 @@ abstract public class Demo {
       sandbox.addSource(Element.SAND1, pX(0.2f, sandbox), (int) sandbox.getHeight() - 1);
       sandbox.addSource(Element.WATER, pX(0.5f, sandbox), (int) sandbox.getHeight() - 1);
       sandbox.addSource(Element.SAND3, pX(0.8f, sandbox), (int) sandbox.getHeight() - 1);
-      sandbox.addSource(Element.PLANT, pX(0.33f, sandbox), pY(0.22f, sandbox));
+      //sandbox.addSource(Element.PLANT, pX(0.33f, sandbox), pY(0.22f, sandbox));
+      sandbox.setParticle(pX(0.33f, sandbox), pY(0.22f, sandbox), Element.PLANT);
       sandbox.addSource(Element.FIRE, pX(0.67f, sandbox), pY(0.22f, sandbox));
     }
   }
