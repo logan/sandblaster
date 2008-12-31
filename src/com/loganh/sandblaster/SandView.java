@@ -17,7 +17,7 @@ public class SandView extends SurfaceView {
   static final private int INITIAL_SCALE = 1;
 
   // If a single location is touched for this long (in ms), make it permanent.
-  static final private long PEN_STICK_THRESHOLD = 2000;
+  static final private long PEN_STICK_THRESHOLD = 500;
 
   private SandBox sandbox;
   private SandBoxDriver driver;
@@ -25,8 +25,8 @@ public class SandView extends SurfaceView {
   private PaletteView palette;
   private boolean penDown;
   private long penDownTime;
-  private float lastPenX;
-  private float lastPenY;
+  private int lastPenX;
+  private int lastPenY;
   private int scaleIndex;
 
   public SandView(Context context, AttributeSet attrs) {
@@ -108,23 +108,28 @@ public class SandView extends SurfaceView {
       // TODO: pressure sensitivity
       penDown = true;
       penDownTime = SystemClock.uptimeMillis();
-      lastPenX = event.getX();
-      lastPenY = event.getY();
-      sandbox.addSource(palette.getElement(), sandbox.fromCanvasX(lastPenX), sandbox.fromCanvasY(lastPenY));
+      lastPenX = sandbox.fromCanvasX(event.getX());
+      lastPenY = sandbox.fromCanvasY(event.getY());
+      sandbox.addSource(palette.getElement(), lastPenX, lastPenY);
       return true;
     } else if (penDown && event.getAction() == MotionEvent.ACTION_MOVE) {
+      int newPenX = sandbox.fromCanvasX(event.getX());
+      int newPenY = sandbox.fromCanvasY(event.getY());
+      if (newPenX == lastPenX && newPenY == lastPenY) {
+        return true;
+      }
       penDownTime = SystemClock.uptimeMillis();
-      sandbox.removeSource(sandbox.fromCanvasX(lastPenX), sandbox.fromCanvasY(lastPenY));
-      lastPenX = event.getX();
-      lastPenY = event.getY();
-      sandbox.addSource(palette.getElement(), sandbox.fromCanvasX(lastPenX), sandbox.fromCanvasY(lastPenY));
+      sandbox.removeSource(lastPenX, lastPenY);
+      sandbox.line(palette.getElement(), lastPenX, lastPenY, newPenX, newPenY);
+      lastPenX = newPenX;
+      lastPenY = newPenY;
+      sandbox.addSource(palette.getElement(), lastPenX, lastPenY);
       return true;
     } else if (penDown && event.getAction() == MotionEvent.ACTION_UP) {
+      Log.i("pen was down for {0} ms", SystemClock.uptimeMillis() - penDownTime);
       if (SystemClock.uptimeMillis() - penDownTime < PEN_STICK_THRESHOLD) {
-        sandbox.removeSource(sandbox.fromCanvasX(lastPenX), sandbox.fromCanvasY(lastPenY));
+        sandbox.removeSource(lastPenX, lastPenY);
       }
-      lastPenX = event.getX();
-      lastPenY = event.getY();
       penDown = false;
       return true;
     }

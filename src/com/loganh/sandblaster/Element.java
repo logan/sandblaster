@@ -10,7 +10,7 @@ public enum Element {
   SAND2 (Color.rgb(0xcc, 0xcc, 0x33), true, 0.5, 0, 0),
   SAND3 (Color.rgb(0xaa, 0xaa, 0xaa), true, 0.5, 0, 0),
   WATER (Color.rgb(0x00, 0x00, 0xff), true, 0.4, 0, 0),
-  PLANT (Color.rgb(0x00, 0xff, 0x00), false, 0.3, 0, 0),
+  PLANT (Color.rgb(0x00, 0xff, 0x00), false, Double.MAX_VALUE, 0, 0),
   FIRE (Color.rgb(0xff, 0x00, 0x00), true, 0.1, 0.5, 2);
 
   // Set up transmutations.
@@ -19,7 +19,7 @@ public enum Element {
     PLANT.addTransmutation(WATER, PLANT, 0.5);
 
     // Fire elements turn plant elements into fire.
-    FIRE.addTransmutation(PLANT, FIRE, 0.9);
+    FIRE.addTransmutation(PLANT, FIRE, 0.75);
   }
 
   static private Random random = new Random();
