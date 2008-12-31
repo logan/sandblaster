@@ -16,6 +16,8 @@ import android.graphics.Point;
 
 public class SandBox {
 
+  private final static int SLIDE_STICKINESS = 5;
+
   private int canvasWidth;
   private int canvasHeight;
   private float scale;
@@ -27,6 +29,8 @@ public class SandBox {
   public int[][] rightNeighbors;
   public Map<Point, Element> sources;
   private Random random;
+  private boolean[] slideDirection;
+  private int[] slideRemaining;
 
   public SandBox(int canvasWidth, int canvasHeight, float scale) {
     this.canvasWidth = canvasWidth;
@@ -42,6 +46,8 @@ public class SandBox {
     sources = new HashMap();
     elements = new Element[width][height];
     ages = new int[width][height];
+    slideDirection = new boolean[height];
+    slideRemaining = new int[height];
     leftNeighbors = new int[width][height];
     rightNeighbors = new int[width][height];
     for (int x = 0; x < width; x++) {
@@ -164,7 +170,12 @@ public class SandBox {
       int xoffs = -1;
       int start = 0;
       int x = -2;
-      if (random.nextBoolean()) {
+      if (slideRemaining[y]-- <= 0) {
+        slideDirection[y] = random.nextBoolean();
+        slideRemaining[y] = (int) (random.nextFloat() * SLIDE_STICKINESS) + 1;
+      }
+      slideDirection[y] = !slideDirection[y];
+      if (slideDirection[y]) {
         neighbors = leftNeighbors;
         start = width - 1;
         xoffs = 1;
@@ -197,7 +208,6 @@ public class SandBox {
           }
         }
           
-
         if (e.mobile) {
 
           // Decay.
@@ -209,56 +219,52 @@ public class SandBox {
             }
           }
 
-          // Free-fall.
+          // Free-fall or sinking.
           if (y == 0) {
             // Special case: at bottom of screen, particles will always drop off
             setParticle(x, y, null);
             continue;
           }
-          if (y > 0 && elements[x][y - 1] == null) {
-            setParticle(x, y - 1, e);
-            ages[x][y - 1] = ages[x][y];
-            setParticle(x, y, null);
+          if (y > 0 && (elements[x][y - 1] == null || elements[x][y - 1].density < e.density)) {
+            swap(x, y, x, y - 1);
             continue;
           }
 
-          // Sliding due to direct pressure.
-          if (y < height - 1 && elements[x][y + 1] != null && elements[x][y + 1].mobile) {
-            int nx = x + xoffs;
-            if (nx < 0 || nx >= width) {
-              // Special case: at edge of screen, particles will always drop off
-              setParticle(x, y, null);
-              continue;
-            } else if (elements[nx][y] == null) {
-              setParticle(nx, y, e);
-              ages[nx][y] = ages[x][y];
-              setParticle(x, y, null);
-              continue;
-            }
-          }
-
-          // Diagonal sliding.
-          if (y > 0) {
-            int nx = x + xoffs;
-            if (nx >= 0 && nx < width && elements[nx][y] == null && elements[nx][y - 1] == null) {
-              setParticle(nx, y - 1, e);
-              ages[nx][y - 1] = ages[x][y];
-              setParticle(x, y, null);
-              continue;
-            }
-          }
-
-          // Sinking.
-          if (y > 0 && elements[x][y - 1] != null && elements[x][y - 1].density < e.density) {
-            int lifetime = ages[x][y];
-            setParticle(x, y, elements[x][y - 1]);
-            ages[x][y] = ages[x][y - 1];
-            setParticle(x, y - 1, e);
-            ages[x][y - 1] = lifetime;
+          // Sliding.
+          if (slide(e, x, y, x + xoffs) || slide(e, x, y, x - xoffs)) {
             continue;
           }
         }
       }
     }
+  }
+
+  private boolean slide(Element e, int x, int y, int nx) {
+    if (nx < 0 || nx >= width) {
+      // Special case: at edge of screen, particles will always drop off
+      setParticle(x, y, null);
+      return true;
+    } else if (elements[nx][y] == null || elements[nx][y].density < e.density) {
+      if (y == 0) {
+        // Special case: slide diagonally off the screen.
+        setParticle(x, y, null);
+      } else if (elements[nx][y - 1] == null || elements[nx][y - 1].density < e.density) {
+        swap(x, y, nx, y - 1);
+      } else {
+        swap(x, y, nx, y);
+      }
+      return true;
+    }
+    return false;
+  }
+
+  private void swap(int x1, int y1, int x2, int y2) {
+    int l1 = ages[x1][y1];
+    int l2 = ages[x2][y2];
+    Element e = elements[x1][y1];
+    setParticle(x1, y1, elements[x2][y2]);
+    setParticle(x2, y2, e);
+    ages[x1][y1] = l2;
+    ages[x2][y2] = l1;
   }
 }

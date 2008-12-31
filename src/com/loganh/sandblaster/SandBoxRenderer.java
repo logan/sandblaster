@@ -53,7 +53,8 @@ public class SandBoxRenderer {
             paint.setColor(e.color);
             if (scale < 1) {
               if (e.mobile) {
-                canvas.drawCircle(cx + r, cy + r, r, paint);
+                //canvas.drawCircle(cx + r, cy + r, r, paint);
+                canvas.drawRect(cx, cy, cx + elemWidth, cy + elemWidth, paint);
               } else {
                 canvas.drawRect(cx, cy, cx + elemWidth, cy + elemWidth, paint);
               }
