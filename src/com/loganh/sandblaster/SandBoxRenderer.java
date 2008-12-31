@@ -24,7 +24,7 @@ public class SandBoxRenderer {
         synchronized (canvas) {
           draw(sandbox, canvas);
           fpsCounter.update();
-          //drawFps(canvas);
+          drawFps(canvas);
         }
       }
     } finally {
@@ -36,23 +36,31 @@ public class SandBoxRenderer {
 
   private void draw(SandBox sandbox, Canvas canvas) {
     float elemWidth = Math.min(canvas.getWidth() / sandbox.getWidth(), canvas.getHeight() / sandbox.getHeight());
+    float r = elemWidth / 2;
     Paint paint = new Paint();
     paint.setColor(Color.BLACK);
     canvas.drawRect(0, 0, canvas.getWidth(), canvas.getHeight(), paint);
     synchronized (sandbox) {
-      for (SandBox.Particle particle : sandbox) {
-        if (particle.element != null) {
-          int cx = particle.canvasX;
-          int cy = particle.canvasY;
-          float r = elemWidth / 2f;
-          paint.setColor(particle.element.color);
-          if (particle.element.mobile) {
-            canvas.drawCircle(cx + r, cy + r, r, paint);
-          } else {
-            canvas.drawRect(cx, cy, cx + elemWidth, cy + elemWidth, paint);
+      int h = sandbox.getHeight();
+      int w = sandbox.getWidth();
+      float scale = sandbox.getScale();
+      for (int y = 0; y < h; y++) {
+        for (int x = 0; x < w; x = sandbox.rightNeighbors[x][y]) {
+          Element e = sandbox.elements[x][y];
+          if (e != null) {
+            float cx = x / scale;
+            float cy = (h - y - 1) / scale;
+            paint.setColor(e.color);
+            if (scale < 1) {
+              if (e.mobile) {
+                canvas.drawCircle(cx + r, cy + r, r, paint);
+              } else {
+                canvas.drawRect(cx, cy, cx + elemWidth, cy + elemWidth, paint);
+              }
+            } else {
+              canvas.drawPoint(cx, cy, paint);
+            }
           }
-        } else {
-          Log.e("particle with null element at {0}, {1}", particle.x, particle.y);
         }
       }
       for (SandBox.Source source : sandbox.getSources()) {

@@ -1,6 +1,5 @@
 package com.loganh.sandblaster;
 
-import android.os.Debug;
 import android.os.SystemClock;
 import android.view.SurfaceHolder;
 
@@ -21,7 +20,6 @@ public class SandBoxDriver extends Thread {
   public void run() {
     long lastUpdate = 0;
     long dtms = (int) (1000 / fps);
-    //Debug.startMethodTracing("update");
     while (!stopped) {
       long now = SystemClock.uptimeMillis();
       long remaining = lastUpdate + dtms - now;
@@ -33,7 +31,6 @@ public class SandBoxDriver extends Thread {
         SystemClock.sleep(remaining);
       }
     }
-    //Debug.stopMethodTracing();
   }
 
   public void shutdown() {

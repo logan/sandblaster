@@ -30,7 +30,8 @@ public enum Element {
   public double decayProbability;
   public int lifetime;
 
-  private List<Transmutation> transmutations;
+  //private List<Transmutation> transmutations;
+  public Map<Element, Transmutation> transmutations;
 
   Element(int color, boolean mobile, double density, double decayProbability, int lifetime) {
     this.color = color;
@@ -38,16 +39,28 @@ public enum Element {
     this.density = density;
     this.decayProbability = decayProbability;
     this.lifetime = lifetime;
-    transmutations = new ArrayList();
+    //transmutations = new ArrayList();
   }
 
   public void addTransmutation(Element target, Element output, double probability) {
-    transmutations.add(new Transmutation(target, output, probability));
+    //transmutations.add(new Transmutation(target, output, probability));
+    if (transmutations == null) {
+      transmutations = new EnumMap(getClass());
+    }
+    transmutations.put(target, new Transmutation(target, output, probability));
   }
 
   public Element maybeTransmutate(Element target) {
+    /*
     for (Transmutation transmutation : transmutations) {
       if (transmutation.target == target && random.nextDouble() < transmutation.probability) {
+        return transmutation.output;
+      }
+    }
+    */
+    if (transmutations != null) {
+      Transmutation transmutation = transmutations.get(target);
+      if (transmutation != null && random.nextDouble() < transmutation.probability) {
         return transmutation.output;
       }
     }

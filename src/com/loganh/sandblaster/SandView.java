@@ -11,10 +11,10 @@ public class SandView extends SurfaceView {
   static final private float FPS = 20;
 
   // Sorted from "biggest" (most coarse) to "smallest" (most granular).
-  static final private float[] SCALES = { 1f / 16, 1f / 8, 1f / 4 };
+  static final private float[] SCALES = { 1f / 16, 1f / 8, 1f / 4, 1f / 2, 1f };
 
   // Index of the scale to default to.
-  static final private int INITIAL_SCALE = 1;
+  static final private int INITIAL_SCALE = 2;
 
   // If a single location is touched for this long (in ms), make it permanent.
   static final private long PEN_STICK_THRESHOLD = 500;

@@ -5,4 +5,6 @@
     <string name="menu_bigger">Bigger</string>
     <string name="menu_smaller">Smaller</string>
     <string name="menu_demo">Demo</string>
+    <string name="menu_trace_on">Trace on</string>
+    <string name="menu_trace_off">Trace off</string>
 </resources>

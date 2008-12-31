@@ -14,15 +14,18 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Point;
 
-public class SandBox implements Iterable<SandBox.Particle> {
+public class SandBox {
 
   private int canvasWidth;
   private int canvasHeight;
   private float scale;
   private int width;
   private int height;
-  private Particle[][] particles;
-  private Map<Point, Element> sources;
+  public Element[][] elements;
+  public int[][] ages;
+  public int[][] leftNeighbors;
+  public int[][] rightNeighbors;
+  public Map<Point, Element> sources;
   private Random random;
 
   public SandBox(int canvasWidth, int canvasHeight, float scale) {
@@ -37,10 +40,14 @@ public class SandBox implements Iterable<SandBox.Particle> {
 
   synchronized public void clear() {
     sources = new HashMap();
-    particles = new Particle[(int) width][(int) height];
+    elements = new Element[width][height];
+    ages = new int[width][height];
+    leftNeighbors = new int[width][height];
+    rightNeighbors = new int[width][height];
     for (int x = 0; x < width; x++) {
       for (int y = 0; y < height; y++) {
-        particles[x][y] = new Particle(x, y);
+        leftNeighbors[x][y] = -1;
+        rightNeighbors[x][y] = width;
       }
     }
   }
@@ -62,11 +69,11 @@ public class SandBox implements Iterable<SandBox.Particle> {
     return height - Math.round(y * scale) - 1;
   }
 
-  public float getWidth() {
+  public int getWidth() {
     return width;
   }
 
-  public float getHeight() {
+  public int getHeight() {
     return height;
   }
 
@@ -107,7 +114,32 @@ public class SandBox implements Iterable<SandBox.Particle> {
 
   synchronized public void setParticle(int x, int y, Element element) {
     if (x >= 0 && y >= 0 && x < width && y < height) {
-      particles[x][y].setElement(element);
+      if (element != elements[x][y]) {
+        elements[x][y] = element;
+        ages[x][y] = 0;
+        for (int nx = x - 1; nx > leftNeighbors[x][y]; nx--) {
+          if (element == null) {
+            rightNeighbors[nx][y] = rightNeighbors[x][y];
+          } else {
+            rightNeighbors[nx][y] = x;
+          }
+        }
+        for (int nx = x + 1; nx < rightNeighbors[x][y]; nx++) {
+          if (element == null) {
+            leftNeighbors[nx][y] = leftNeighbors[x][y];
+          } else {
+            leftNeighbors[nx][y] = x;
+          }
+        }
+        if (element != null) {
+          if (leftNeighbors[x][y] >= 0) {
+            rightNeighbors[leftNeighbors[x][y]][y] = x;
+          }
+          if (rightNeighbors[x][y] < width) {
+            leftNeighbors[rightNeighbors[x][y]][y] = x;
+          }
+        }
+      }
     }
   }
 
@@ -122,125 +154,107 @@ public class SandBox implements Iterable<SandBox.Particle> {
     }
   }
 
-  class Particle {
-    public int x;
-    public int y;
-    public int canvasX;
-    public int canvasY;
-    public int lifetime;
-    public Element element;
-
-    public Particle(int x, int y) {
-      this.x = x;
-      this.y = y;
-      canvasX = toCanvasX(x);
-      canvasY = toCanvasY(y);
-    }
-
-    public void setElement(Element element) {
-      if (this.element != element) {
-        this.element = element;
-        lifetime = 0;
-      }
-    }
-  }
-
-  synchronized public Iterator<Particle> iterator() {
-    List result = new ArrayList();
-    for (int x = 0; x < width; x++) {
-      for (int y = 0; y < height; y++) {
-        if (particles[x][y].element != null) {
-          result.add(particles[x][y]);
-        }
-      }
-    }
-    return result.iterator();
-  }
-
   synchronized public void update() {
     for (Point pt : sources.keySet()) {
-      particles[pt.x][pt.y].setElement(sources.get(pt));
+      setParticle(pt.x, pt.y, sources.get(pt));
     }
 
     for (int y = 0; y < height; y++) {
-      int[] xs = new int[width];
-      int nxs = 0;
+      int[][] neighbors = rightNeighbors;
       int xoffs = -1;
-      for (int x = 0; x < width; x++) {
-        if (particles[x][y].element != null) {
-          xs[nxs++] = x;
-        }
-      }
+      int start = 0;
+      int x = -2;
       if (random.nextBoolean()) {
+        neighbors = leftNeighbors;
+        start = width - 1;
         xoffs = 1;
-        for (int i = 0; i < nxs / 2; i++) {
-          int x = xs[i];
-          xs[i] = xs[nxs - i - 1];
-          xs[nxs - i - 1] = x;
-        }
       }
-      for (int i = 0; i < nxs; i++) {
-        int x = xs[i];
-        Particle p = particles[x][y];
+      while (x != -1 && x < width) {
+        if (x == -2) {
+          x = start;
+        } else {
+          x = neighbors[x][y];
+          if (x == -1 || x >= width) {
+            break;
+          }
+        }
+        Element e = elements[x][y];
+        if (e == null) {
+          continue;
+        }
 
         // Transmutations.
-        for (int xo = -1; xo < 2; xo++) {
-          for (int yo = -1; yo < 2; yo++) {
-            if ((xo != 0 || yo != 0) && (xo == 0 || yo == 0)) {
-              if (x + xo >= 0 && x + xo < width && y + yo >= 0 & y + yo < height
-                  && particles[x + xo][y + yo].element != null) {
-                Element element = p.element.maybeTransmutate(particles[x + xo][y + yo].element);
-                particles[x + xo][y + yo].setElement(element);
+        if (e.transmutations != null) {
+          for (int xo = -1; xo < 2; xo++) {
+            for (int yo = -1; yo < 2; yo++) {
+              if ((xo != 0 || yo != 0) && (xo == 0 || yo == 0)) {
+                if (x + xo >= 0 && x + xo < width && y + yo >= 0 & y + yo < height
+                    && elements[x + xo][y + yo] != null) {
+                  setParticle(x + xo, y + yo, e.maybeTransmutate(elements[x + xo][y + yo]));
+                }
               }
             }
           }
         }
+          
 
-        if (p.element.mobile) {
+        if (e.mobile) {
 
           // Decay.
-          if (random.nextFloat() < p.element.decayProbability) {
-            p.lifetime++;
-            if (p.lifetime > p.element.lifetime) {
-              p.setElement(null);
+          if (e.decayProbability > 0 && random.nextFloat() < e.decayProbability) {
+            ages[x][y]++;
+            if (ages[x][y] > e.lifetime) {
+              setParticle(x, y, null);
               continue;
             }
           }
 
-          // Special case: at bottom of screen, particles will always drop off
+          // Free-fall.
           if (y == 0) {
-            p.setElement(null);
+            // Special case: at bottom of screen, particles will always drop off
+            setParticle(x, y, null);
             continue;
           }
-          if (y > 0 && particles[x][y - 1].element == null) {
-            particles[x][y - 1].setElement(p.element);
-            particles[x][y - 1].lifetime = p.lifetime;
-            p.setElement(null);
+          if (y > 0 && elements[x][y - 1] == null) {
+            setParticle(x, y - 1, e);
+            ages[x][y - 1] = ages[x][y];
+            setParticle(x, y, null);
             continue;
           }
-          if (y < height - 1 && particles[x][y + 1].element != null
-              && particles[x][y + 1].element.mobile) {
+
+          // Sliding due to direct pressure.
+          if (y < height - 1 && elements[x][y + 1] != null && elements[x][y + 1].mobile) {
             int nx = x + xoffs;
-            // Special case: at edge of screen, particles will always drop off
             if (nx < 0 || nx >= width) {
-              p.setElement(null);
+              // Special case: at edge of screen, particles will always drop off
+              setParticle(x, y, null);
               continue;
-            } else if (particles[nx][y].element == null) {
-              particles[nx][y].setElement(p.element);
-              particles[nx][y].lifetime = p.lifetime;
-              p.setElement(null);
+            } else if (elements[nx][y] == null) {
+              setParticle(nx, y, e);
+              ages[nx][y] = ages[x][y];
+              setParticle(x, y, null);
               continue;
             }
           }
-          if (y > 0 && particles[x][y - 1].element != null
-              && particles[x][y - 1].element.density < p.element.density) {
-            // TODO: maintain particle properties
-            Element e = p.element;
-            int lifetime = p.lifetime;
-            p.setElement(particles[x][y - 1].element);
-            p.lifetime = particles[x][y - 1].lifetime;
-            particles[x][y - 1].setElement(e);
-            particles[x][y - 1].lifetime = lifetime;
+
+          // Diagonal sliding.
+          if (y > 0) {
+            int nx = x + xoffs;
+            if (nx >= 0 && nx < width && elements[nx][y] == null && elements[nx][y - 1] == null) {
+              setParticle(nx, y - 1, e);
+              ages[nx][y - 1] = ages[x][y];
+              setParticle(x, y, null);
+              continue;
+            }
+          }
+
+          // Sinking.
+          if (y > 0 && elements[x][y - 1] != null && elements[x][y - 1].density < e.density) {
+            int lifetime = ages[x][y];
+            setParticle(x, y, elements[x][y - 1]);
+            ages[x][y] = ages[x][y - 1];
+            setParticle(x, y - 1, e);
+            ages[x][y - 1] = lifetime;
             continue;
           }
         }
