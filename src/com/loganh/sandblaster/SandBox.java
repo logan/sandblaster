@@ -13,40 +13,6 @@ import android.graphics.Color;
 
 public class SandBox implements Iterable<SandBox.Particle> {
 
-  static public Element[] ELEMENTS = new Element[]{
-      new Element("wall", Color.WHITE, false, 1.0, 0, 0),
-      new Element("sand1", Color.YELLOW, true, 0.5, 0, 0),
-      new Element("sand2", 0xffcccc33, true, 0.5, 0, 0),
-      new Element("sand3", 0xffaaaaaa, true, 0.5, 0, 0),
-      new Element("water", Color.BLUE, true, 0.4, 0, 0),
-      new Element("plant", Color.GREEN, false, 1.0, 0, 0),
-      new Element("fire", Color.RED, true, -1.0, 1.0, 3),
-  };
-
-  static {
-    addTransmutation("plant", "water", "plant", 0.5);
-    addTransmutation("fire", "plant", "fire", 0.75);
-  }
-
-  static private Element lookupElement(String name) {
-    for (Element element : ELEMENTS) {
-      if (element.name.equals(name)) {
-        return element;
-      }
-    }
-    return null;
-  }
-
-  static private void addTransmutation(String source, String target, String output, double probability) {
-    Element sourceElement = lookupElement(source);
-    Element targetElement = lookupElement(target);
-    Element outputElement = lookupElement(output);
-    assert(sourceElement != null);
-    assert(targetElement != null);
-    assert(outputElement != null);
-    sourceElement.addTransmutation(target, outputElement, probability);
-  }
-
   private int width;
   private int height;
   private Particle[][] particles;

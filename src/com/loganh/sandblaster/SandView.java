@@ -113,7 +113,7 @@ public class SandView extends SurfaceView {
 
   private void sprinkle(int x, int y) {
     if (palette != null && sandbox != null) {
-      sandbox.setParticle(x, y, SandBox.ELEMENTS[palette.selected % SandBox.ELEMENTS.length]);
+      sandbox.setParticle(x, y, PaletteView.ELEMENTS[palette.selected % PaletteView.ELEMENTS.length]);
     }
   }
 

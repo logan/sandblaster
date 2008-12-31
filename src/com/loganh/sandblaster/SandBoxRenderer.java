@@ -24,7 +24,7 @@ public class SandBoxRenderer {
         synchronized (canvas) {
           draw(sandbox, canvas);
           fpsCounter.update();
-          drawFps(canvas);
+          //drawFps(canvas);
         }
       }
     } finally {
