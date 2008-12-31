@@ -19,7 +19,7 @@ public enum Element {
     PLANT.addTransmutation(WATER, PLANT, 0.5);
 
     // Fire elements turn plant elements into fire.
-    FIRE.addTransmutation(PLANT, FIRE, 0.75);
+    FIRE.addTransmutation(PLANT, FIRE, 0.85);
   }
 
   static private Random random = new Random();
