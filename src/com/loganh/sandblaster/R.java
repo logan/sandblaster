@@ -27,6 +27,7 @@ public final class R {
         public static final int app_name=0x7f040000;
         public static final int menu_bigger=0x7f040002;
         public static final int menu_clear=0x7f040001;
+        public static final int menu_demo=0x7f040004;
         public static final int menu_smaller=0x7f040003;
     }
 }

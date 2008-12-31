@@ -1,6 +1,7 @@
 package com.loganh.sandblaster;
 
 import android.content.Context;
+import android.os.SystemClock;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
@@ -15,11 +16,17 @@ public class SandView extends SurfaceView {
   // Index of the scale to default to.
   static final private int INITIAL_SCALE = 1;
 
+  // If a single location is touched for this long (in ms), make it permanent.
+  static final private long PEN_STICK_THRESHOLD = 2000;
+
   private SandBox sandbox;
   private SandBoxDriver driver;
   private SandBoxRenderer renderer;
   private PaletteView palette;
   private boolean penDown;
+  private long penDownTime;
+  private float lastPenX;
+  private float lastPenY;
   private int scaleIndex;
 
   public SandView(Context context, AttributeSet attrs) {
@@ -55,7 +62,7 @@ public class SandView extends SurfaceView {
     stopDriver();
   }
 
-  public void clear() {
+  synchronized public void clear() {
     if (sandbox != null) {
       sandbox.clear();
     }
@@ -87,6 +94,7 @@ public class SandView extends SurfaceView {
   public void onLayout(boolean changed, int left, int top, int right, int bottom) {
     if (sandbox == null) {
       resetSandbox();
+      installDemo();
     }
   }
 
@@ -99,24 +107,43 @@ public class SandView extends SurfaceView {
       // TODO: line drawing
       // TODO: pressure sensitivity
       penDown = true;
-      sprinkle(sandbox.fromCanvasX(event.getX(), getWidth()), sandbox.fromCanvasY(event.getY(), getHeight()));
+      penDownTime = SystemClock.uptimeMillis();
+      lastPenX = event.getX();
+      lastPenY = event.getY();
+      sandbox.addSource(
+          palette.getElement(),
+          sandbox.fromCanvasX(lastPenX, getWidth()),
+          sandbox.fromCanvasY(lastPenY, getHeight()));
       return true;
     } else if (penDown && event.getAction() == MotionEvent.ACTION_MOVE) {
-      sprinkle(sandbox.fromCanvasX(event.getX(), getWidth()), sandbox.fromCanvasY(event.getY(), getHeight()));
+      penDownTime = SystemClock.uptimeMillis();
+      sandbox.removeSource(
+          sandbox.fromCanvasX(lastPenX, getWidth()),
+          sandbox.fromCanvasY(lastPenY, getHeight()));
+      lastPenX = event.getX();
+      lastPenY = event.getY();
+      sandbox.addSource(
+          palette.getElement(),
+          sandbox.fromCanvasX(lastPenX, getWidth()),
+          sandbox.fromCanvasY(lastPenY, getHeight()));
       return true;
-    } else if (event.getAction() == MotionEvent.ACTION_UP) {
+    } else if (penDown && event.getAction() == MotionEvent.ACTION_UP) {
+      if (SystemClock.uptimeMillis() - penDownTime < PEN_STICK_THRESHOLD) {
+        sandbox.removeSource(
+            sandbox.fromCanvasX(lastPenX, getWidth()),
+            sandbox.fromCanvasY(lastPenY, getHeight()));
+      }
+      lastPenX = event.getX();
+      lastPenY = event.getY();
       penDown = false;
       return true;
     }
     return false;
   }
 
-  private void sprinkle(int x, int y) {
-    if (palette != null && sandbox != null) {
-      sandbox.setParticle(x, y, PaletteView.ELEMENTS[palette.selected % PaletteView.ELEMENTS.length]);
-    }
-  }
-
-  public void setScale(float scale) {
+  synchronized public void installDemo() {
+    startDriver();
+    clear();
+    Demo.install(sandbox);
   }
 }

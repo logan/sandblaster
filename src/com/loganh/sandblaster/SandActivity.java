@@ -10,6 +10,7 @@ public class SandActivity extends Activity {
   static final private int CLEAR = 0;
   static final private int BIGGER = 1;
   static final private int SMALLER = 2;
+  static final private int DEMO = 3;
 
   SandView view;
   PaletteView palette;
@@ -48,6 +49,7 @@ public class SandActivity extends Activity {
     menu.add(0, CLEAR, 0, R.string.menu_clear).setIcon(R.drawable.clear);
     menu.add(0, BIGGER, 0, R.string.menu_bigger).setIcon(R.drawable.bigger);
     menu.add(0, SMALLER, 0, R.string.menu_smaller).setIcon(R.drawable.smaller);
+    menu.add(0, DEMO, 0, R.string.menu_demo);
     return true;
   }
 
@@ -62,6 +64,9 @@ public class SandActivity extends Activity {
         return true;
       case SMALLER:
         view.makeSmaller();
+        return true;
+      case DEMO:
+        view.installDemo();
         return true;
     }
     return false;

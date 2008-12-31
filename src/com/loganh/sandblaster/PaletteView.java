@@ -54,4 +54,8 @@ public class PaletteView extends View {
     }
     return false;
   }
+
+  public Element getElement() {
+    return ELEMENTS[selected];
+  }
 }

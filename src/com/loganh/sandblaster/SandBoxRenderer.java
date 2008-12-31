@@ -44,11 +44,22 @@ public class SandBoxRenderer {
         if (particle.element != null) {
           int cx = sandbox.toCanvasX(particle.x, canvas.getWidth());
           int cy = sandbox.toCanvasY(particle.y, canvas.getHeight());
+          float r = elemWidth / 2f;
           paint.setColor(particle.element.color);
-          canvas.drawRect(cx, cy, cx + elemWidth, cy + elemWidth, paint);
+          if (particle.element.mobile) {
+            canvas.drawCircle(cx + r, cy + r, r, paint);
+          } else {
+            canvas.drawRect(cx, cy, cx + elemWidth, cy + elemWidth, paint);
+          }
         } else {
           Log.e("particle with null element at {0}, {1}", particle.x, particle.y);
         }
+      }
+      for (SandBox.Source source : sandbox.getSources()) {
+        int x = sandbox.toCanvasX(source.x, canvas.getWidth());
+        int y = sandbox.toCanvasY(source.y, canvas.getHeight());
+        paint.setColor(source.element.color);
+        canvas.drawRect(x, y, x + elemWidth, y + elemWidth, paint);
       }
     }
   }

@@ -10,6 +10,7 @@ import java.util.Set;
 
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Point;
 
 public class SandBox implements Iterable<SandBox.Particle> {
 
@@ -17,6 +18,7 @@ public class SandBox implements Iterable<SandBox.Particle> {
   private int height;
   private Particle[][] particles;
   private Map<Integer, Set<Integer> > activeCache;
+  private Map<Point, Element> sources;
   private Random random;
 
   public SandBox(int width, int height) {
@@ -27,6 +29,7 @@ public class SandBox implements Iterable<SandBox.Particle> {
   }
 
   synchronized public void clear() {
+    sources = new HashMap();
     particles = new Particle[(int) width][(int) height];
     activeCache = new HashMap();
     for (int x = 0; x < width; x++) {
@@ -61,9 +64,49 @@ public class SandBox implements Iterable<SandBox.Particle> {
     return height;
   }
 
+  synchronized public void addSource(Element element, int x, int y) {
+    sources.put(new Point(x, y), element);
+  }
+
+  synchronized public void removeSource(int x, int y) {
+    sources.remove(new Point(x, y));
+  }
+
+  synchronized public Source[] getSources() {
+    Source[] result = new Source[sources.size()];
+    int i = 0;
+    for (Point pt : sources.keySet()) {
+      result[i++] = new Source(pt.x, pt.y, sources.get(pt));
+    }
+    return result;
+  }
+
+  class Source {
+    public int x;
+    public int y;
+    public Element element;
+
+    public Source(int x, int y, Element element) {
+      this.x = x;
+      this.y = y;
+      this.element = element;
+    }
+  }
+
   synchronized public void setParticle(int x, int y, Element element) {
     if (x >= 0 && y >= 0 && x < width && y < height) {
       particles[x][y].setElement(element);
+    }
+  }
+
+  synchronized public void line(Element element, int x1, int y1, int x2, int y2) {
+    int dx = x1 - x2;
+    int dy = y1 - y2;
+    int d = Math.max(Math.abs(dx), Math.abs(dy));
+    for (int i = 0; i <= d; i++) {
+      float x = x2 + ((float) i / d) * dx;
+      float y = y2 + ((float) i / d) * dy;
+      setParticle(Math.round(x), Math.round(y), element);
     }
   }
 
@@ -143,6 +186,10 @@ public class SandBox implements Iterable<SandBox.Particle> {
   }
 
   synchronized public void update() {
+    for (Point pt : sources.keySet()) {
+      particles[pt.x][pt.y].setElement(sources.get(pt));
+    }
+
     for (int y = 0; y < height; y++) {
       Integer[] xs = new Integer[0];
       int xoffs = -1;
