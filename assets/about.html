@@ -1,0 +1,109 @@
+<html>
+  <head>
+    <title>About Sand Blaster</title>
+    <style>
+      body, table { background: black; color: white; font-family: Verdana, Arial, sans-serif; font-size: 10px; }
+      td { vertical-align: top; }
+      .concrete { color: #aaaaaa; }
+      .sand { color: #ffff00; }
+      .salt { color: #eeeeee; }
+      .water { color: #0000ff; }
+      .oil { color: #cc3300; }
+      .vegetation { color: #00ff00; }
+      .fire { color: #ff0000; }
+      .saltwater { color: #8888ff; }
+      .dead { color: #55cc00; }
+    </style>
+  </head>
+  <body>
+    <h1>About Sand Blaster</h1>
+
+    <b>Sand Blaster</b> simulates falling particles like sand, water, and other elements in two dimensions.
+
+    <h2>Controls</h2>
+
+    <p>
+      At the bottom of the screen, you'll find a <i>palette</i> containing squares for each of the types
+      of elements that you can draw with. The currently selected element will have a white border around it.
+      Touch one of these squares to select it as the current drawing element.
+    </p>
+
+    <p>
+      If you touch any other part of the screen, you will insert a particle of the currently selected element.
+      Hold down or drag your finger tip to continuously insert particles. If you hold your finger on the same pixel for more than
+      half a second and then release, then the same element will continuously be inserted in the same location forever until
+      you draw over it.
+    </p>
+
+    <p>
+      The cost of simulating and rendering particles is proportional to the number of particles on the screen. For this reason,
+      the application defaults to a low resolution. Choosing <i>Smaller</i> from the menu will increase the resolution, at the expense
+      of frame rate and batter power. Choosing <i>Bigger</i> will decrease the resolution.
+    </p>
+
+    <h2>Types of Particles</h2>
+
+    Each particle on the screen is of a particular element, which is represented by its color.
+
+    <table>
+      <tr>
+        <th colspan="2">Palette Elements</th>
+      </tr>
+      <tr>
+        <td class="concrete">Concrete</td>
+        <td>Concrete is static and blocks all particles. Use this element to create structures (like bowls) to hold other particles.</td>
+      </tr>
+      <tr>
+        <td class="sand">Sand</td>
+        <td>Sand is one of the simplest and most dense particles. It is mobile but does not react with any elements.</td>
+      </tr>
+      <tr>
+        <td class="salt">Salt</td>
+        <td>Salt is as dense as sand, but reacts to water and vegetation.</td>
+      </tr>
+      <tr>
+        <td class="water">Water</td>
+        <td>
+          Water is lighter than sand or salt. Salt turns water into salt water,
+          and vegetation turns water into more vegetation. Over time, water will become salty due to evaporation.
+        </td>
+      </tr>
+      <tr>
+        <td class="oil">Oil</td>
+        <td>Oil is lighter than water and very flammable.</td>
+      </tr>
+      <tr>
+        <td class="vegetation">Vegetation</td>
+        <td>
+          Vegetation is static, but unlike concrete it is very reactive. Vegetation
+          will turn water into more vegetation, but vegetation will be killed by salt and salt water. Vegetation also
+          burns easily, and over time will die naturally.
+        </td>
+      <tr>
+      <tr>
+        <td class="fire">Fire</td>
+        <td>Fire is a very buoyant and short-lived element. Fire will turn oil and live or dead vegetation into more fire.</td>
+      </tr>
+      <tr>
+        <th colspan="2">Other Elements</th>
+      </tr>
+      <tr>
+        <td class="saltwater">Salt water</td>
+        <td>Salt water is the heaviest liquid particle. Over time salt water will evaporate into salt.</td>
+      </tr>
+      <tr>
+        <td class="dead">Dead vegetation</td>
+        <td>
+          Dead vegetation is subject to movement and gravity, unlike live vegetation, and burns
+          a little faster. Water can bring dead vegetation back to life.
+        </td>
+      </tr>
+    </table>
+
+    <h2>Open Source Project</h2>
+
+    The project home page for <b>Sand Blaster</b> is at
+    <a href="http://sandblaster.googlecode.com">http://sandblaster.googlecode.com</a>.
+    You can also visit the project home page to file bugs or access more documentation.
+  </body>
+</html>
