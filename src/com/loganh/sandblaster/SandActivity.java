@@ -53,8 +53,10 @@ public class SandActivity extends Activity {
     menu.add(0, BIGGER, 0, R.string.menu_bigger).setIcon(R.drawable.bigger);
     menu.add(0, SMALLER, 0, R.string.menu_smaller).setIcon(R.drawable.smaller);
     menu.add(0, DEMO, 0, R.string.menu_demo);
+    /*
     menu.add(0, TRACE_ON, 0, R.string.menu_trace_on);
     menu.add(0, TRACE_OFF, 0, R.string.menu_trace_off);
+    */
     return true;
   }
 
