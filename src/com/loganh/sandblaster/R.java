@@ -33,6 +33,5 @@ public final class R {
         public static final int menu_smaller=0x7f040003;
         public static final int menu_trace_off=0x7f040006;
         public static final int menu_trace_on=0x7f040005;
-        public static final int ok=0x7f040009;
     }
 }

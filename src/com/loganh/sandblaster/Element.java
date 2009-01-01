@@ -17,7 +17,7 @@ public enum Element {
 
   // Other elements:
   SALTWATER (Color.rgb(0x88, 0x88, 0xff), true, 0.45),
-  DEADPLANT (Color.rgb(0x55, 0xcc, 0x00), true, 0.2);
+  DEADPLANT (Color.rgb(0xaa, 0x88, 0x00), true, 0.2);
 
   // Set up transmutations and decay products.
   static {
