@@ -3,6 +3,7 @@ package com.loganh.sandblaster;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Rect;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 
@@ -35,6 +36,27 @@ public class SandBoxRenderer {
   }
 
   private void draw(SandBox sandbox, Canvas canvas) {
+    synchronized (sandbox) {
+      if (sandbox.lastDirtyIndex == 0) {
+        return;
+      }
+      int w = sandbox.getWidth();
+      int h = sandbox.getHeight();
+      for (int i = sandbox.lastCleanIndex; i != sandbox.lastDirtyIndex; i = (i + 1) % sandbox.dirtyPixels.length) {
+        int offset = sandbox.dirtyPixels[i];
+        int y = offset / w;
+        int x = offset % w;
+        Element e = sandbox.elements[x][y];
+        sandbox.bitmap.setPixel(x, h - y - 1, e == null ? Color.BLACK : e.color);
+      }
+      sandbox.lastCleanIndex = sandbox.lastDirtyIndex;
+      Rect src = new Rect(0, 0, w, h);
+      Rect dest = new Rect(0, 0, canvas.getWidth(), canvas.getHeight());
+      canvas.drawBitmap(sandbox.bitmap, src, dest, new Paint());
+    }
+  }
+
+  private void slowDraw(SandBox sandbox, Canvas canvas) {
     float elemWidth = Math.min(canvas.getWidth() / sandbox.getWidth(), canvas.getHeight() / sandbox.getHeight());
     float r = elemWidth / 2;
     Paint paint = new Paint();

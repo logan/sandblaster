@@ -10,30 +10,59 @@ import java.util.NoSuchElementException;
 import java.util.Random;
 import java.util.Set;
 
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Point;
 
 public class SandBox {
 
-  private final static int SLIDE_STICKINESS = 1;
+  // Particles.
 
+  // Element of the particle at (x, y).
+  public Element[][] elements;
+
+  // Age of the particle at (x, y).
+  public int[][] ages;
+
+  // A doubly-linked list of particles for each row. The nearest neighbor to
+  // the left of (x, y) is at (leftNeighbors[x][y], y), if there is one.
+  public int[][] leftNeighbors;
+  public int[][] rightNeighbors;
+
+  // Points where particles are continuously emitted.
+  public Map<Point, Element> sources;
+
+  // Rendering.
+
+  // TODO: move to renderer
+  public Bitmap bitmap;
+
+  // Circular buffer of particle coordinates that need to be redrawn.
+  public int[] dirtyPixels;
+
+  // Position in dirtyPixels to the right of the last updated particle.
+  public int lastCleanIndex;
+
+  // Position in dirtyPixels to insert the next updated particle.
+  public int lastDirtyIndex;
+
+  // Iterating.
+
+  // Keep track of which iteration certain events occurred in for each particle.
+  private int iteration;
+  private int[][] lastSet;
+  private int[][] lastChange;
+  private int[][] lastFloated;
+
+  private Random random;
+
+  // Dimensions.
   private int canvasWidth;
   private int canvasHeight;
   private float scale;
   private int width;
   private int height;
-  public Element[][] elements;
-  public int[][] ages;
-  public int[][] leftNeighbors;
-  public int[][] rightNeighbors;
-  public Map<Point, Element> sources;
-  private Random random;
-  private boolean[] slideDirection;
-  private int[] slideRemaining;
-  private int[][] lastSet;
-  private int[][] lastFloated;
-  private int iteration;
 
   public SandBox(int canvasWidth, int canvasHeight, float scale) {
     this.canvasWidth = canvasWidth;
@@ -49,18 +78,23 @@ public class SandBox {
     sources = new HashMap();
     elements = new Element[width][height];
     ages = new int[width][height];
-    slideDirection = new boolean[height];
-    slideRemaining = new int[height];
     leftNeighbors = new int[width][height];
     rightNeighbors = new int[width][height];
     lastSet = new int[width][height];
+    lastChange = new int[width][height];
     lastFloated = new int[width][height];
-    iteration = 0;
+    iteration = -1;
+    dirtyPixels = new int[width * height];
     for (int x = 0; x < width; x++) {
       for (int y = 0; y < height; y++) {
         leftNeighbors[x][y] = -1;
         rightNeighbors[x][y] = width;
       }
+    }
+    if (bitmap != null) {
+      bitmap.eraseColor(Color.BLACK);
+    } else {
+      bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
     }
   }
 
@@ -124,12 +158,17 @@ public class SandBox {
     }
   }
 
-  private void setParticle(int x, int y, Element element) {
+  public void setParticle(int x, int y, Element element) {
     if (x >= 0 && y >= 0 && x < width && y < height) {
       lastSet[x][y] = iteration;
       if (element != elements[x][y]) {
+        if (lastChange[x][y] != iteration) {
+          dirtyPixels[lastDirtyIndex] = y * width + x;
+          lastDirtyIndex = (lastDirtyIndex + 1) % dirtyPixels.length;
+        }
         elements[x][y] = element;
         ages[x][y] = 0;
+        lastChange[x][y] = iteration;
         for (int nx = x - 1; nx > leftNeighbors[x][y]; nx--) {
           if (element == null) {
             rightNeighbors[nx][y] = rightNeighbors[x][y];
@@ -161,13 +200,14 @@ public class SandBox {
     int dy = y1 - y2;
     int d = Math.max(Math.abs(dx), Math.abs(dy));
     for (int i = 0; i <= d; i++) {
-      float x = x2 + ((float) i / d) * dx;
-      float y = y2 + ((float) i / d) * dy;
+      int x = Math.round(x2 + ((float) i / d) * dx);
+      int y = Math.round(y2 + ((float) i / d) * dy);
       setParticle(Math.round(x), Math.round(y), element);
     }
   }
 
   synchronized public void update() {
+    //lastDirtyIndex = 0;
     for (Point pt : sources.keySet()) {
       setParticle(pt.x, pt.y, sources.get(pt));
     }
@@ -178,11 +218,7 @@ public class SandBox {
       int[][] neighbors = rightNeighbors;
       int xoffs = -1;
       int start = 0;
-      if (slideRemaining[y]-- < 0) {
-        slideRemaining[y] = (int) (random.nextDouble() * SLIDE_STICKINESS);
-        slideDirection[y] = random.nextBoolean();
-      }
-      if (slideDirection[y]) {
+      if (random.nextBoolean()) {
         neighbors = leftNeighbors;
         xoffs = 1;
         start = width - 1;
