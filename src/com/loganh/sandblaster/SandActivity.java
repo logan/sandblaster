@@ -18,6 +18,9 @@ import android.widget.TextView;
 
 public class SandActivity extends Activity {
 
+  // Maximum FPS.
+  static final private float FPS = 20;
+
   // Request codes.
   static final private int LOAD_SNAPSHOT_REQUEST = 0;
   static final private int SAVE_SNAPSHOT_REQUEST = 1;
@@ -41,6 +44,9 @@ public class SandActivity extends Activity {
   private MenuItem biggerItem;
   private MenuItem smallerItem;
 
+  private SandBox sandbox;
+  private SandBoxDriver driver;
+
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -52,20 +58,37 @@ public class SandActivity extends Activity {
     assert(view != null);
     assert(palette != null);
     view.setPaletteView(palette);
+    initializeSandBox();
+    startDriver();
+  }
+
+  private void initializeSandBox() {
+    try {
+      Snapshot snapshot = new Snapshot("Autosave", this);
+      setSandBox(snapshot.sandbox);
+    } catch (IOException ex) {
+      Log.e("unable to load Autosave", ex);
+      installDemo();
+    }
+  }
+
+  public void setSandBox(SandBox sandbox) {
+    this.sandbox = sandbox;
+    view.setSandBox(sandbox);
   }
 
   @Override
   public void onResume() {
     super.onResume();
     Log.i("resume");
-    view.resume();
+    startDriver();
   }
 
   @Override
   public void onPause() {
     super.onPause();
     Log.i("pause");
-    view.pause();
+    stopDriver();
   }
 
   @Override
@@ -99,7 +122,7 @@ public class SandActivity extends Activity {
           String name = data.getData().getSchemeSpecificPart();
           try {
             Snapshot snapshot = new Snapshot(name, this);
-            view.setSandbox(snapshot.sandbox);
+            view.setSandBox(snapshot.sandbox);
             Log.i("loaded {0}", snapshot.name);
           } catch (IOException ex) {
             Log.e("failed to load " + name, ex);
@@ -109,7 +132,7 @@ public class SandActivity extends Activity {
       case SAVE_SNAPSHOT_REQUEST:
         if (resultCode == Snapshot.SAVE_SNAPSHOT_RESULT) {
           String name = data.getData().getSchemeSpecificPart();
-          Snapshot snapshot = new Snapshot(view.sandbox);
+          Snapshot snapshot = new Snapshot(sandbox);
           snapshot.name = name;
           try {
             snapshot.save(this);
@@ -129,7 +152,7 @@ public class SandActivity extends Activity {
   public boolean onOptionsItemSelected(MenuItem item) {
     switch (item.getItemId()) {
       case CLEAR:
-        view.clear();
+        clear();
         return true;
       case BIGGER:
         biggerItem.setEnabled(view.makeBigger());
@@ -140,7 +163,7 @@ public class SandActivity extends Activity {
         biggerItem.setEnabled(true);
         return true;
       case DEMO:
-        view.installDemo();
+        installDemo();
         return true;
       case TRACE_ON:
         Debug.startMethodTracing("sand");
@@ -198,5 +221,43 @@ public class SandActivity extends Activity {
     Intent intent = new Intent(Intent.ACTION_PICK);
     intent.setDataAndType(Uri.EMPTY, "application/x-sandblaster-saveable");
     startActivityForResult(intent, SAVE_SNAPSHOT_REQUEST);
+  }
+
+  private void startDriver() {
+    stopDriver();
+    if (sandbox != null) {
+      driver = new SandBoxDriver(sandbox, view.getRenderer(), FPS);
+      driver.start();
+    }
+  }
+
+  private void stopDriver() {
+    if (driver != null) {
+      driver.shutdown();
+    }
+    driver = null;
+    if (sandbox != null) {
+      Snapshot snapshot = new Snapshot(sandbox);
+      snapshot.name = "Autosave";
+      try {
+        snapshot.save(this);
+      } catch (IOException ex) {
+        Log.e("Failed to autosave snapshot", ex);
+      }
+    }
+  }
+
+  private void clear() {
+    if (sandbox != null) {
+      sandbox.clear();
+    }
+  }
+
+  private void installDemo() {
+    startDriver();
+    clear();
+    if (sandbox != null) {
+      Demo.install(sandbox);
+    }
   }
 }

@@ -3,19 +3,59 @@ package com.loganh.sandblaster;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Point;
 import android.graphics.Rect;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 
 public class SandBoxRenderer {
 
+  private static final int VOID_COLOR = Color.rgb(0, 0, 0);
+  private static final int PADDING_COLOR = Color.rgb(0xcc, 0xcc, 0xcc);
+
+  public static abstract class Camera {
+
+    private float scale;
+    private Point offset;
+
+    public Camera(float scale) {
+      this.scale = scale;
+      offset = new Point(0, 0);
+    }
+
+    public void setScale(float scale) {
+      this.scale = scale;
+    }
+
+    private Point getOffset() {
+      Point o = getObjectSize();
+      Point v = getViewSize();
+      return new Point(offset.x + Math.round((v.x - o.x / scale) / 2), offset.y + Math.round((v.y - o.y / scale) / 2));
+    }
+
+    public Point viewToObject(Point pt) {
+      Point o = getOffset();
+      return new Point(Math.round((pt.x - o.x) * scale), getObjectSize().y - Math.round((pt.y - o.y) * scale) - 1);
+    }
+
+    public Point objectToView(Point pt) {
+      Point result = getOffset();
+      result.offset(Math.round(pt.x / scale), Math.round((getObjectSize().y - pt.y - 1) / scale));
+      return result;
+    }
+
+    abstract public Point getObjectSize();
+    abstract public Point getViewSize();
+  }
+
   private SurfaceHolder surface;
+  private Camera camera;
   private FrameRateCounter fpsCounter;
   private int lastFpsRight;
-  private boolean clean;
 
-  public SandBoxRenderer(SurfaceHolder surface) {
+  public SandBoxRenderer(SurfaceHolder surface, Camera camera) {
     this.surface = surface;
+    this.camera = camera;
     fpsCounter = new FrameRateCounter();
   }
 
@@ -25,10 +65,13 @@ public class SandBoxRenderer {
       canvas = surface.lockCanvas();
       if (canvas != null) {
         synchronized (canvas) {
-          draw(sandbox, canvas);
-          fpsCounter.update();
-          if (true || SandActivity.DEBUG) {
-            drawFps(canvas);
+          synchronized (sandbox) {
+            setPixels(sandbox);
+            draw(sandbox, canvas);
+            fpsCounter.update();
+            if (true || SandActivity.DEBUG) {
+              drawFps(canvas);
+            }
           }
         }
       }
@@ -55,16 +98,16 @@ public class SandBoxRenderer {
   }
 
   private void draw(SandBox sandbox, Canvas canvas) {
-    synchronized (sandbox) {
-      setPixels(sandbox);
-      Rect src = new Rect(0, 0, sandbox.getWidth(), sandbox.getHeight());
-      Rect dest = new Rect(0, 0, canvas.getWidth(), canvas.getHeight());
-      if (!clean) {
-        canvas.drawRect(dest, new Paint());
-        clean = true;
-      }
-      canvas.drawBitmap(sandbox.bitmap, src, dest, new Paint());
-    }
+    Point topLeft = camera.objectToView(new Point(0, sandbox.getHeight() - 1));
+    Point bottomRight = camera.objectToView(new Point(sandbox.getWidth(), 0));
+    Rect src = new Rect(0, 0, sandbox.getWidth(), sandbox.getHeight());
+    Rect dest = new Rect(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y);
+    Paint paint = new Paint();
+    paint.setColor(PADDING_COLOR);
+    canvas.drawRect(0, 0, canvas.getWidth(), canvas.getHeight(), paint);
+    paint.setColor(VOID_COLOR);
+    canvas.drawRect(dest, paint);
+    canvas.drawBitmap(sandbox.bitmap, src, dest, paint);
   }
 
   private void drawFps(Canvas canvas) {
@@ -78,4 +121,5 @@ public class SandBoxRenderer {
     paint.setColor(Color.WHITE);
     canvas.drawText(fps, 0, -bounds.top, paint);
   }
+
 }

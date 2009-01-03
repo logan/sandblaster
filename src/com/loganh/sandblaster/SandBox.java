@@ -16,6 +16,9 @@ import android.graphics.Point;
 
 public class SandBox {
 
+  public final static int DEFAULT_WIDTH = 160;
+  public final static int DEFAULT_HEIGHT = 160;
+
   // Particles.
 
   // Element of the particle at (x, y).
@@ -59,6 +62,10 @@ public class SandBox {
   // Dimensions.
   private int width;
   private int height;
+
+  public SandBox() {
+    this(DEFAULT_WIDTH, DEFAULT_HEIGHT);
+  }
 
   public SandBox(int width, int height) {
     this.width = width;
