@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_height="wrap_content"
+    android:layout_width="fill_parent">
+
+  <ImageView
+      android:id="@+id/snapshot_thumbnail"
+      android:background="#ff000000"
+      android:scaleType="centerInside"
+      android:layout_width="60px"
+      android:layout_height="60px"/>
+
+  <LinearLayout
+      android:orientation="horizontal"
+      android:paddingLeft="8px"
+      android:layout_width="fill_parent"
+      android:layout_height="60px">
+
+    <TextView
+        android:id="@+id/snapshot_title"
+        android:ellipsize="end"
+        android:textSize="40px"
+        android:layout_width="fill_parent"
+        android:layout_height="40px"/>
+
+    <TextView
+        android:id="@+id/snapshot_stats"
+        android:textSize="20px"
+        android:layout_width="fill_parent"
+        android:layout_height="20px"
+        android:layout_gravity="right"/>
+
+  </LinearLayout>
+
+</LinearLayout>

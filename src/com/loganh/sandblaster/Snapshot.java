@@ -17,6 +17,9 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Xml;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -205,22 +208,33 @@ public class Snapshot implements Comparable<Snapshot> {
     @Override
     public void onCreate(Bundle savedInstanceState) {
       super.onCreate(savedInstanceState);
-      ListView list = new ListView(this);
+      setContentView(R.layout.snapshot_pick);
+
+      if (getIntent().getType().equals("application/x-sandblaster-saveable")) {
+        final Button button = (Button) findViewById(R.id.save_button);
+        EditText text = (EditText) findViewById(R.id.save_input);
+        text.addTextChangedListener(new TextWatcher() {
+              public void afterTextChanged(Editable s) {
+                button.setEnabled(s.length() > 0 && !s.toString().contains("/"));
+              }
+
+              public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+              public void onTextChanged(CharSequence s, int start, int before, int count) { }
+            });
+      } else {
+        // Lose the save input row when loading.
+        LinearLayout layout = (LinearLayout) findViewById(R.id.picker_layout);
+        layout.removeViewAt(0);
+      }
+
+      ListView list = (ListView) findViewById(R.id.snapshot_list);
       list.setAdapter(new SnapshotListAdapter(this));
-      list.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
       list.setOnItemClickListener(new ListView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
               Snapshot snapshot = (Snapshot) parent.getItemAtPosition(position);
               finish(snapshot.name);
             }
           });
-      LinearLayout layout = new LinearLayout(this);
-      layout.setOrientation(LinearLayout.VERTICAL);
-      if (getIntent().getType().equals("application/x-sandblaster-saveable")) {
-        layout.addView(new SaveInput(this));
-      }
-      layout.addView(list, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT, THUMBNAIL_HEIGHT, 1));
-      setContentView(layout);
     }
 
     public void finish(String name) {
@@ -245,52 +259,23 @@ public class Snapshot implements Comparable<Snapshot> {
     }
   }
 
-  static private class SaveInput extends LinearLayout {
-
-    public SaveInput(PickActivity context) {
-      super(context);
-      final EditText text = new EditText(context);
-      text.setSingleLine();
-      text.setHint(R.string.save_hint);
-      Button button = new Button(context);
-      button.setText(R.string.save_button);
-      button.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View view) {
-              // TODO: automatic button disabling
-              // TODO: feedback about path separators
-              String name = text.getText().toString();
-              if (name.length() > 0 && !name.contains("/")) {
-                PickActivity c = (PickActivity) SaveInput.this.getContext();
-                c.finish(text.getText().toString());
-              }
-            }
-          });
-      addView(text, new LayoutParams(THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT, 1));
-      addView(button);
-    }
-  }
-
   static private class SnapshotView extends LinearLayout {
 
     private Snapshot snapshot;
 
     public SnapshotView(Context context, Snapshot snapshot) {
       super(context);
-      ImageView image = new ImageView(context);
-      image.setBackgroundColor(Color.BLACK);
-      image.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+      this.snapshot = snapshot;
+      LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+      inflater.inflate(R.layout.snapshot, this);
+      ImageView image = (ImageView) findViewById(R.id.snapshot_thumbnail);
       try {
         image.setImageBitmap(snapshot.getThumbnail(context));
       } catch (IOException ex) {
         Log.e("failed to get or generate thumbnail for " + snapshot.name, ex);
       }
-      addView(image, new LinearLayout.LayoutParams(THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT, 0));
-      TextView text = new TextView(context);
-      int p = THUMBNAIL_HEIGHT / 8;
-      text.setPadding(p, p, p, p);
-      text.setTextSize(3f * THUMBNAIL_HEIGHT / 8);
+      TextView text = (TextView) findViewById(R.id.snapshot_title);
       text.setText(snapshot.name);
-      addView(text);
     }
   }
 }

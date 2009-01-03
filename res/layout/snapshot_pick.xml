@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/picker_layout"
+    android:orientation="vertical"
+    android:layout_height="fill_parent"
+    android:layout_width="fill_parent">
+
+  <LinearLayout
+      android:id="@+id/save_line"
+      android:orientation="horizontal"
+      android:layout_width="fill_parent"
+      android:layout_height="wrap_content">
+
+    <EditText
+        android:id="@+id/save_input"
+        android:hint="@string/save_hint"
+        android:singleLine="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"/>
+
+    <Button
+        android:id="@+id/save_button"
+        android:enabled="false"
+        android:text="@string/save_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+  </LinearLayout>
+
+  <ListView
+      android:id="@+id/snapshot_list"
+      android:choiceMode="singleChoice"
+      android:layout_width="fill_parent"
+      android:layout_height="fill_parent"/>
+
+</LinearLayout>
