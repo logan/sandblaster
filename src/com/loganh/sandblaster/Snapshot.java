@@ -39,8 +39,8 @@ public class Snapshot implements Comparable<Snapshot> {
   static final public String THUMBNAIL_EXTENSION = ".thumbnail";
 
   // Dimensions
-  static final public int THUMBNAIL_WIDTH = 64;
-  static final public int THUMBNAIL_HEIGHT = 64;
+  static final public int THUMBNAIL_WIDTH = 60;
+  static final public int THUMBNAIL_HEIGHT = 60;
 
   // TODO: put a schema somewhere
   public static final String NS = "http://sandblaster.googlecode.com/svn/trunk/";
@@ -121,6 +121,24 @@ public class Snapshot implements Comparable<Snapshot> {
     return name.toLowerCase().compareTo(other.name.toLowerCase());
   }
 
+  static public Set<Snapshot> getSnapshots(Context context) {
+    Set<Snapshot> snapshots = new TreeSet();
+    for (String filename : context.fileList()) {
+      if (filename.endsWith(SNAPSHOT_EXTENSION)) {
+        String name = filename.substring(0, filename.length() - SNAPSHOT_EXTENSION.length());
+        snapshots.add(new Snapshot(name));
+      }
+    }
+    return snapshots;
+  }
+
+  static public void deleteAll(Context context) {
+    for (Snapshot snapshot : getSnapshots(context)) {
+      context.deleteFile(snapshot.name + SNAPSHOT_EXTENSION);
+      context.deleteFile(snapshot.name + THUMBNAIL_EXTENSION);
+    }
+  }
+
   static public void write(SandBox sandbox, Writer writer) throws IOException {
     int h = sandbox.getHeight();
     int w = sandbox.getWidth();
@@ -180,17 +198,6 @@ public class Snapshot implements Comparable<Snapshot> {
       eventType = parser.next();
     }
     return sandbox;
-  }
-
-  static public Set<Snapshot> getSnapshots(Context context) {
-    Set<Snapshot> snapshots = new TreeSet();
-    for (String filename : context.fileList()) {
-      if (filename.endsWith(SNAPSHOT_EXTENSION)) {
-        String name = filename.substring(0, filename.length() - SNAPSHOT_EXTENSION.length());
-        snapshots.add(new Snapshot(name));
-      }
-    }
-    return snapshots;
   }
 
   static public class PickActivity extends Activity {

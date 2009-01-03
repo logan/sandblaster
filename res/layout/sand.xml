@@ -1,24 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_height="fill_parent"
     android:layout_width="fill_parent">
 
   <com.loganh.sandblaster.SandView 
       android:id="@+id/sand"
+      android:orientation="vertical"
       android:gravity="top"
       android:layout_weight="1"
       android:layout_width="fill_parent"
-      android:layout_height="256px"
-      />
+      android:layout_height="256px">
 
-  <com.loganh.sandblaster.PaletteView
-      android:id="@+id/palette"
-      android:gravity="bottom"
-      android:layout_weight="0"
-      android:layout_width="fill_parent"
-      android:layout_height="23px"
-      />
+    <SurfaceView
+        android:id="@+id/surface"
+        android:gravity="top"
+        android:layout_weight="1"
+        android:layout_width="fill_parent"
+        android:layout_height="224px"/>
+
+    <com.loganh.sandblaster.PaletteView
+        android:id="@+id/palette"
+        android:gravity="bottom"
+        android:layout_weight="0"
+        android:layout_width="fill_parent"
+        android:layout_height="23px"
+        />
+
+    <ZoomControls
+        android:id="@+id/zoom"
+        android:layout_gravity="bottom|center"
+        android:layout_weight="0"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+  </com.loganh.sandblaster.SandView>
 
 </LinearLayout>

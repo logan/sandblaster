@@ -5,8 +5,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Rect;
-import android.view.Surface;
-import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 
 public class SandBoxRenderer {
 
@@ -30,17 +29,17 @@ public class SandBoxRenderer {
     private Point getOffset() {
       Point o = getObjectSize();
       Point v = getViewSize();
-      return new Point(offset.x + Math.round((v.x - o.x / scale) / 2), offset.y + Math.round((v.y - o.y / scale) / 2));
+      return new Point(offset.x + Math.round((v.x - o.x * scale) / 2), offset.y + Math.round((v.y - o.y * scale) / 2));
     }
 
     public Point viewToObject(Point pt) {
       Point o = getOffset();
-      return new Point(Math.round((pt.x - o.x) * scale), getObjectSize().y - Math.round((pt.y - o.y) * scale) - 1);
+      return new Point(Math.round((pt.x - o.x) / scale), getObjectSize().y - Math.round((pt.y - o.y) / scale) - 1);
     }
 
     public Point objectToView(Point pt) {
       Point result = getOffset();
-      result.offset(Math.round(pt.x / scale), Math.round((getObjectSize().y - pt.y - 1) / scale));
+      result.offset(Math.round(pt.x * scale), Math.round((getObjectSize().y - pt.y - 1) * scale));
       return result;
     }
 
@@ -48,21 +47,24 @@ public class SandBoxRenderer {
     abstract public Point getViewSize();
   }
 
-  private SurfaceHolder surface;
+  private SurfaceView surfaceView;
   private Camera camera;
   private FrameRateCounter fpsCounter;
   private int lastFpsRight;
 
-  public SandBoxRenderer(SurfaceHolder surface, Camera camera) {
-    this.surface = surface;
+  public SandBoxRenderer(SurfaceView surfaceView, Camera camera) {
+    this.surfaceView = surfaceView;
     this.camera = camera;
     fpsCounter = new FrameRateCounter();
   }
 
   public void draw(SandBox sandbox) {
     Canvas canvas = null;
+    if (surfaceView.getHolder() == null) {
+      return;
+    }
     try {
-      canvas = surface.lockCanvas();
+      canvas = surfaceView.getHolder().lockCanvas();
       if (canvas != null) {
         synchronized (canvas) {
           synchronized (sandbox) {
@@ -77,7 +79,7 @@ public class SandBoxRenderer {
       }
     } finally {
       if (canvas != null) {
-        surface.unlockCanvasAndPost(canvas);
+        surfaceView.getHolder().unlockCanvasAndPost(canvas);
       }
     }
   }

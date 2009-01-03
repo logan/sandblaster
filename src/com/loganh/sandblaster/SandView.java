@@ -8,17 +8,20 @@ import android.os.SystemClock;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
+import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.ZoomControls;
 
-public class SandView extends SurfaceView {
-  // Sorted from "biggest" (most coarse) to "smallest" (most granular).
-  static final private float[] SCALES = { 1f / 16, 1f / 8, 1f / 4, 1f / 2, 1f };
-
-  // Index of the scale to default to.
-  static final private int INITIAL_SCALE = 2;
+public class SandView extends LinearLayout {
+  static final private float ZOOM_FACTOR = 1.2f;
+  static final private float MIN_SCALE = 1f;
+  static final private float MAX_SCALE = 16f;
 
   // If a single location is touched for this long (in ms), make it permanent.
   static final private long PEN_STICK_THRESHOLD = 500;
 
+  private SurfaceView surface;
+  private ZoomControls zoomControls;
   private SandBox sandbox;
   private SandBoxRenderer renderer;
   private SandBoxRenderer.Camera camera;
@@ -26,21 +29,46 @@ public class SandView extends SurfaceView {
   private boolean penDown;
   private long penDownTime;
   private Point lastPen;
-  private int scaleIndex;
+  private float scale;
 
   public SandView(Context context, AttributeSet attrs) {
     super(context, attrs);
-    scaleIndex = INITIAL_SCALE;
-    camera = new SandBoxRenderer.Camera(SCALES[scaleIndex]) {
+    scale = 1;
+    camera = new SandBoxRenderer.Camera(scale) {
       public Point getViewSize() {
-        return new Point(SandView.this.getWidth(), SandView.this.getHeight());
+        return new Point(SandView.this.surface.getWidth(), SandView.this.surface.getHeight());
       }
 
       public Point getObjectSize() {
         return new Point(SandView.this.sandbox.getWidth(), SandView.this.sandbox.getHeight());
       }
     };
-    renderer = new SandBoxRenderer(getHolder(), camera);
+  }
+
+  @Override
+  protected void onFinishInflate() {
+    Log.i("Finish inflate");
+    surface = (SurfaceView) findViewById(R.id.surface);
+    zoomControls = (ZoomControls) findViewById(R.id.zoom);
+    renderer = new SandBoxRenderer(surface, camera);
+
+    zoomControls.setOnZoomInClickListener(new OnClickListener() {
+          public void onClick(View v) {
+            zoomIn();
+          }
+        });
+    zoomControls.setOnZoomOutClickListener(new OnClickListener() {
+          public void onClick(View v) {
+            zoomOut();
+          }
+        });
+  }
+
+  @Override
+  protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+    if (sandbox != null) {
+      zoomToFit();
+    }
   }
 
   public SandBoxRenderer getRenderer() {
@@ -53,22 +81,41 @@ public class SandView extends SurfaceView {
 
   public void setSandBox(SandBox sandbox) {
     this.sandbox = sandbox;
+    Log.i("setSandBox calling zoomToFit");
+    zoomToFit();
+    Log.i("zoomed to {0}", scale);
   }
 
-  public boolean makeBigger() {
-    if (scaleIndex > 0) {
-      scaleIndex--;
-      camera.setScale(SCALES[scaleIndex]);
+  public void zoomIn() {
+    if (canZoomIn()) {
+      setScale(scale * ZOOM_FACTOR);
     }
-    return scaleIndex > 0;
   }
 
-  public boolean makeSmaller() {
-    if (scaleIndex < SCALES.length - 1) {
-      scaleIndex++;
-      camera.setScale(SCALES[scaleIndex]);
+  public void zoomOut() {
+    if (canZoomOut()) {
+      setScale(scale / ZOOM_FACTOR);
     }
-    return scaleIndex < SCALES.length - 1;
+  }
+
+  public void zoomToFit() {
+    setScale(Math.min(getWidth() / (float) sandbox.getWidth(), getHeight() / (float) sandbox.getHeight()));
+  }
+
+  private void setScale(float scale) {
+    Log.i("setting scale from {0} to {1}", this.scale, scale);
+    this.scale = scale;
+    camera.setScale(scale);
+    zoomControls.setIsZoomInEnabled(canZoomIn());
+    zoomControls.setIsZoomOutEnabled(canZoomOut());
+  }
+
+  public boolean canZoomIn() {
+    return scale * ZOOM_FACTOR <= MAX_SCALE;
+  }
+
+  public boolean canZoomOut() {
+    return scale / ZOOM_FACTOR >= MIN_SCALE;
   }
 
   private int scaleX(float x) {

@@ -16,7 +16,7 @@ import android.graphics.Point;
 
 public class SandBox {
 
-  public final static int DEFAULT_WIDTH = 160;
+  public final static int DEFAULT_WIDTH = 120;
   public final static int DEFAULT_HEIGHT = 160;
 
   // Particles.

@@ -27,22 +27,19 @@ public class SandActivity extends Activity {
 
   // Menu codes.
   static final private int CLEAR = 0;
-  static final private int BIGGER = 1;
-  static final private int SMALLER = 2;
-  static final private int DEMO = 3;
-  static final private int TRACE_ON = 4;
-  static final private int TRACE_OFF = 5;
-  static final private int ABOUT = 6;
-  static final private int SAVE = 9;
-  static final private int LOAD = 10;
+  static final private int DEMO = 1;
+  static final private int TRACE_ON = 2;
+  static final private int TRACE_OFF = 3;
+  static final private int DELETE_ALL = 4;
+  static final private int ABOUT = 5;
+  static final private int SAVE = 6;
+  static final private int LOAD = 7;
+  static final private int ZOOM_TO_FIT = 8;
 
   static final public boolean DEBUG = Build.DEVICE.equals("generic");
 
   private SandView view;
   private PaletteView palette;
-
-  private MenuItem biggerItem;
-  private MenuItem smallerItem;
 
   private SandBox sandbox;
   private SandBoxDriver driver;
@@ -68,13 +65,16 @@ public class SandActivity extends Activity {
       setSandBox(snapshot.sandbox);
     } catch (IOException ex) {
       Log.e("unable to load Autosave", ex);
+      setSandBox(new SandBox());
       installDemo();
     }
   }
 
   public void setSandBox(SandBox sandbox) {
+    stopDriver();
     this.sandbox = sandbox;
     view.setSandBox(sandbox);
+    startDriver();
   }
 
   @Override
@@ -94,22 +94,54 @@ public class SandActivity extends Activity {
   @Override
   public boolean onCreateOptionsMenu(Menu menu) {
     super.onCreateOptionsMenu(menu);
-    menu.add(0, CLEAR, 0, R.string.menu_clear).setIcon(R.drawable.clear);
-    biggerItem = menu.add(0, BIGGER, 0, R.string.menu_bigger);
-    biggerItem.setIcon(R.drawable.bigger);
-    smallerItem = menu.add(0, SMALLER, 0, R.string.menu_smaller);
-    smallerItem.setIcon(R.drawable.smaller);
+    menu.add(0, CLEAR, 0, R.string.menu_clear).setIcon(android.R.drawable.ic_menu_close_clear_cancel);
+    menu.add(0, ZOOM_TO_FIT, 0, R.string.menu_zoom_to_fit).setIcon(android.R.drawable.ic_menu_zoom);
+    menu.add(0, ABOUT, 0, R.string.menu_about).setIcon(android.R.drawable.ic_menu_help);
     if (DEBUG) {
       // Ensure these are in the first five options, so we don't have to go
       // through the "More" submenu.
       menu.add(0, TRACE_ON, 0, R.string.menu_trace_on);
       menu.add(0, TRACE_OFF, 0, R.string.menu_trace_off);
+      menu.add(0, DELETE_ALL, 0, R.string.menu_delete_all);
     }
-    menu.add(0, DEMO, 0, R.string.menu_demo);
-    menu.add(0, ABOUT, 0, R.string.menu_about);
-    menu.add(0, SAVE, 0, R.string.menu_save);
-    menu.add(0, LOAD, 0, R.string.menu_load);
+    menu.add(0, SAVE, 0, R.string.menu_save).setIcon(android.R.drawable.ic_menu_save);
+    menu.add(0, LOAD, 0, R.string.menu_load).setIcon(android.R.drawable.ic_menu_gallery);
+    menu.add(0, DEMO, 0, R.string.menu_demo).setIcon(android.R.drawable.ic_menu_slideshow);
     return true;
+  }
+
+  @Override
+  public boolean onOptionsItemSelected(MenuItem item) {
+    switch (item.getItemId()) {
+      case CLEAR:
+        clear();
+        return true;
+      case DEMO:
+        installDemo();
+        return true;
+      case TRACE_ON:
+        Debug.startMethodTracing("sand");
+        return true;
+      case TRACE_OFF:
+        Debug.stopMethodTracing();
+        return true;
+      case DELETE_ALL:
+        Snapshot.deleteAll(this);
+        return true;
+      case ABOUT:
+        about();
+        return true;
+      case SAVE:
+        save();
+        return true;
+      case LOAD:
+        load();
+        return true;
+      case ZOOM_TO_FIT:
+        view.zoomToFit();
+        return true;
+    }
+    return false;
   }
 
   @Override
@@ -122,7 +154,7 @@ public class SandActivity extends Activity {
           String name = data.getData().getSchemeSpecificPart();
           try {
             Snapshot snapshot = new Snapshot(name, this);
-            view.setSandBox(snapshot.sandbox);
+            setSandBox(snapshot.sandbox);
             Log.i("loaded {0}", snapshot.name);
           } catch (IOException ex) {
             Log.e("failed to load " + name, ex);
@@ -146,42 +178,6 @@ public class SandActivity extends Activity {
         }
         break;
     }
-  }
-
-  @Override
-  public boolean onOptionsItemSelected(MenuItem item) {
-    switch (item.getItemId()) {
-      case CLEAR:
-        clear();
-        return true;
-      case BIGGER:
-        biggerItem.setEnabled(view.makeBigger());
-        smallerItem.setEnabled(true);
-        return true;
-      case SMALLER:
-        smallerItem.setEnabled(view.makeSmaller());
-        biggerItem.setEnabled(true);
-        return true;
-      case DEMO:
-        installDemo();
-        return true;
-      case TRACE_ON:
-        Debug.startMethodTracing("sand");
-        return true;
-      case TRACE_OFF:
-        Debug.stopMethodTracing();
-        return true;
-      case ABOUT:
-        about();
-        return true;
-      case SAVE:
-        save();
-        return true;
-      case LOAD:
-        load();
-        return true;
-    }
-    return false;
   }
 
   private void about() {
@@ -248,16 +244,11 @@ public class SandActivity extends Activity {
   }
 
   private void clear() {
-    if (sandbox != null) {
-      sandbox.clear();
-    }
+    setSandBox(new SandBox());
   }
 
   private void installDemo() {
-    startDriver();
     clear();
-    if (sandbox != null) {
-      Demo.install(sandbox);
-    }
+    Demo.install(sandbox);
   }
 }
