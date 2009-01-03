@@ -250,8 +250,10 @@ public class Snapshot implements Comparable<Snapshot> {
     public SaveInput(PickActivity context) {
       super(context);
       final EditText text = new EditText(context);
+      text.setSingleLine();
+      text.setHint(R.string.save_hint);
       Button button = new Button(context);
-      button.setText(R.string.button_save);
+      button.setText(R.string.save_button);
       button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
               // TODO: automatic button disabling
