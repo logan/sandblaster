@@ -11,7 +11,6 @@ import java.util.Random;
 import java.util.Set;
 
 import android.graphics.Bitmap;
-import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Point;
 
@@ -58,18 +57,12 @@ public class SandBox {
   private Random random;
 
   // Dimensions.
-  private int canvasWidth;
-  private int canvasHeight;
-  private float scale;
   private int width;
   private int height;
 
-  public SandBox(int canvasWidth, int canvasHeight, float scale) {
-    this.canvasWidth = canvasWidth;
-    this.canvasHeight = canvasHeight;
-    this.scale = scale;
-    width = (int) (canvasWidth * scale);
-    height = (int) (canvasHeight * scale);
+  public SandBox(int width, int height) {
+    this.width = width;
+    this.height = height;
     random = new Random();
     clear();
   }
@@ -98,33 +91,12 @@ public class SandBox {
     }
   }
 
-  public int toCanvasX(float x) {
-    return Math.round(x / scale);
-  }
-
-  public int toCanvasY(float y) {
-    y = height - y - 1;
-    return Math.round(y / scale);
-  }
-
-  public int fromCanvasX(float x) {
-    return Math.round(x * scale);
-  }
-
-  public int fromCanvasY(float y) {
-    return height - Math.round(y * scale) - 1;
-  }
-
   public int getWidth() {
     return width;
   }
 
   public int getHeight() {
     return height;
-  }
-
-  public float getScale() {
-    return scale;
   }
 
   synchronized public void addSource(Element element, int x, int y) {
@@ -202,12 +174,11 @@ public class SandBox {
     for (int i = 0; i <= d; i++) {
       int x = Math.round(x2 + ((float) i / d) * dx);
       int y = Math.round(y2 + ((float) i / d) * dy);
-      setParticle(Math.round(x), Math.round(y), element);
+      setParticle(x, y, element);
     }
   }
 
   synchronized public void update() {
-    //lastDirtyIndex = 0;
     for (Point pt : sources.keySet()) {
       setParticle(pt.x, pt.y, sources.get(pt));
     }

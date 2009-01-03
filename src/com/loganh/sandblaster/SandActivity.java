@@ -1,12 +1,12 @@
 package com.loganh.sandblaster;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Intent;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Debug;
 import android.text.util.Linkify;
@@ -17,6 +17,12 @@ import android.webkit.WebView;
 import android.widget.TextView;
 
 public class SandActivity extends Activity {
+
+  // Request codes.
+  static final private int LOAD_SNAPSHOT_REQUEST = 0;
+  static final private int SAVE_SNAPSHOT_REQUEST = 1;
+
+  // Menu codes.
   static final private int CLEAR = 0;
   static final private int BIGGER = 1;
   static final private int SMALLER = 2;
@@ -24,9 +30,16 @@ public class SandActivity extends Activity {
   static final private int TRACE_ON = 4;
   static final private int TRACE_OFF = 5;
   static final private int ABOUT = 6;
+  static final private int SAVE = 9;
+  static final private int LOAD = 10;
 
-  SandView view;
-  PaletteView palette;
+  static final public boolean DEBUG = Build.DEVICE.equals("generic");
+
+  private SandView view;
+  private PaletteView palette;
+
+  private MenuItem biggerItem;
+  private MenuItem smallerItem;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -39,7 +52,6 @@ public class SandActivity extends Activity {
     assert(view != null);
     assert(palette != null);
     view.setPaletteView(palette);
-    Log.i("create: {0}, {1}", view, palette);
   }
 
   @Override
@@ -60,15 +72,57 @@ public class SandActivity extends Activity {
   public boolean onCreateOptionsMenu(Menu menu) {
     super.onCreateOptionsMenu(menu);
     menu.add(0, CLEAR, 0, R.string.menu_clear).setIcon(R.drawable.clear);
-    menu.add(0, BIGGER, 0, R.string.menu_bigger).setIcon(R.drawable.bigger);
-    menu.add(0, SMALLER, 0, R.string.menu_smaller).setIcon(R.drawable.smaller);
+    biggerItem = menu.add(0, BIGGER, 0, R.string.menu_bigger);
+    biggerItem.setIcon(R.drawable.bigger);
+    smallerItem = menu.add(0, SMALLER, 0, R.string.menu_smaller);
+    smallerItem.setIcon(R.drawable.smaller);
+    if (DEBUG) {
+      // Ensure these are in the first five options, so we don't have to go
+      // through the "More" submenu.
+      menu.add(0, TRACE_ON, 0, R.string.menu_trace_on);
+      menu.add(0, TRACE_OFF, 0, R.string.menu_trace_off);
+    }
     menu.add(0, DEMO, 0, R.string.menu_demo);
-    /*
-    menu.add(0, TRACE_ON, 0, R.string.menu_trace_on);
-    menu.add(0, TRACE_OFF, 0, R.string.menu_trace_off);
-    */
     menu.add(0, ABOUT, 0, R.string.menu_about);
+    menu.add(0, SAVE, 0, R.string.menu_save);
+    menu.add(0, LOAD, 0, R.string.menu_load);
     return true;
+  }
+
+  @Override
+  protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    Log.i("activity result: requestCode={0}, resultCode={1}, uri={2}",
+        requestCode, resultCode, data == null ? null : data.getDataString());
+    switch (requestCode) {
+      case LOAD_SNAPSHOT_REQUEST:
+        if (resultCode == Snapshot.LOAD_SNAPSHOT_RESULT) {
+          String name = data.getData().getSchemeSpecificPart();
+          try {
+            Snapshot snapshot = new Snapshot(name, this);
+            view.setSandbox(snapshot.sandbox);
+            Log.i("loaded {0}", snapshot.name);
+          } catch (IOException ex) {
+            Log.e("failed to load " + name, ex);
+          }
+        }
+        break;
+      case SAVE_SNAPSHOT_REQUEST:
+        if (resultCode == Snapshot.SAVE_SNAPSHOT_RESULT) {
+          String name = data.getData().getSchemeSpecificPart();
+          Snapshot snapshot = new Snapshot(view.sandbox);
+          snapshot.name = name;
+          try {
+            snapshot.save(this);
+          } catch (IOException ex) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setCancelable(true);
+            builder.setTitle(R.string.save_error_title);
+            builder.setMessage(R.string.save_error_message);
+            builder.show();
+          }
+        }
+        break;
+    }
   }
 
   @Override
@@ -78,10 +132,12 @@ public class SandActivity extends Activity {
         view.clear();
         return true;
       case BIGGER:
-        view.makeBigger();
+        biggerItem.setEnabled(view.makeBigger());
+        smallerItem.setEnabled(true);
         return true;
       case SMALLER:
-        view.makeSmaller();
+        smallerItem.setEnabled(view.makeSmaller());
+        biggerItem.setEnabled(true);
         return true;
       case DEMO:
         view.installDemo();
@@ -94,6 +150,12 @@ public class SandActivity extends Activity {
         return true;
       case ABOUT:
         about();
+        return true;
+      case SAVE:
+        save();
+        return true;
+      case LOAD:
+        load();
         return true;
     }
     return false;
@@ -124,5 +186,17 @@ public class SandActivity extends Activity {
     builder.setTitle(R.string.about_title);
     builder.setView(webView);
     builder.show();
+  }
+
+  private void load() {
+    Intent intent = new Intent(Intent.ACTION_PICK);
+    intent.setDataAndType(Uri.EMPTY, "application/x-sandblaster-loadable");
+    startActivityForResult(intent, LOAD_SNAPSHOT_REQUEST);
+  }
+
+  private void save() {
+    Intent intent = new Intent(Intent.ACTION_PICK);
+    intent.setDataAndType(Uri.EMPTY, "application/x-sandblaster-saveable");
+    startActivityForResult(intent, SAVE_SNAPSHOT_REQUEST);
   }
 }

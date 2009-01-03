@@ -11,6 +11,8 @@ public class SandBoxRenderer {
 
   private SurfaceHolder surface;
   private FrameRateCounter fpsCounter;
+  private int lastFpsRight;
+  private boolean clean;
 
   public SandBoxRenderer(SurfaceHolder surface) {
     this.surface = surface;
@@ -25,7 +27,9 @@ public class SandBoxRenderer {
         synchronized (canvas) {
           draw(sandbox, canvas);
           fpsCounter.update();
-          //drawFps(canvas);
+          if (true || SandActivity.DEBUG) {
+            drawFps(canvas);
+          }
         }
       }
     } finally {
@@ -35,11 +39,8 @@ public class SandBoxRenderer {
     }
   }
 
-  private void draw(SandBox sandbox, Canvas canvas) {
+  static public void setPixels(SandBox sandbox) {
     synchronized (sandbox) {
-      if (sandbox.lastDirtyIndex == 0) {
-        return;
-      }
       int w = sandbox.getWidth();
       int h = sandbox.getHeight();
       for (int i = sandbox.lastCleanIndex; i != sandbox.lastDirtyIndex; i = (i + 1) % sandbox.dirtyPixels.length) {
@@ -50,54 +51,31 @@ public class SandBoxRenderer {
         sandbox.bitmap.setPixel(x, h - y - 1, e == null ? Color.BLACK : e.color);
       }
       sandbox.lastCleanIndex = sandbox.lastDirtyIndex;
-      Rect src = new Rect(0, 0, w, h);
+    }
+  }
+
+  private void draw(SandBox sandbox, Canvas canvas) {
+    synchronized (sandbox) {
+      setPixels(sandbox);
+      Rect src = new Rect(0, 0, sandbox.getWidth(), sandbox.getHeight());
       Rect dest = new Rect(0, 0, canvas.getWidth(), canvas.getHeight());
+      if (!clean) {
+        canvas.drawRect(dest, new Paint());
+        clean = true;
+      }
       canvas.drawBitmap(sandbox.bitmap, src, dest, new Paint());
     }
   }
 
-  private void slowDraw(SandBox sandbox, Canvas canvas) {
-    float elemWidth = Math.min(canvas.getWidth() / sandbox.getWidth(), canvas.getHeight() / sandbox.getHeight());
-    float r = elemWidth / 2;
+  private void drawFps(Canvas canvas) {
+    String fps = "FPS: " + fpsCounter.getFps();
+    Rect bounds = new Rect();
     Paint paint = new Paint();
     paint.setColor(Color.BLACK);
-    canvas.drawRect(0, 0, canvas.getWidth(), canvas.getHeight(), paint);
-    synchronized (sandbox) {
-      int h = sandbox.getHeight();
-      int w = sandbox.getWidth();
-      float scale = sandbox.getScale();
-      for (int y = 0; y < h; y++) {
-        for (int x = 0; x < w; x = sandbox.rightNeighbors[x][y]) {
-          Element e = sandbox.elements[x][y];
-          if (e != null) {
-            float cx = x / scale;
-            float cy = (h - y - 1) / scale;
-            paint.setColor(e.color);
-            if (scale < 1) {
-              if (e.mobile) {
-                //canvas.drawCircle(cx + r, cy + r, r, paint);
-                canvas.drawRect(cx, cy, cx + elemWidth, cy + elemWidth, paint);
-              } else {
-                canvas.drawRect(cx, cy, cx + elemWidth, cy + elemWidth, paint);
-              }
-            } else {
-              canvas.drawPoint(cx, cy, paint);
-            }
-          }
-        }
-      }
-      for (SandBox.Source source : sandbox.getSources()) {
-        int x = sandbox.toCanvasX(source.x);
-        int y = sandbox.toCanvasY(source.y);
-        paint.setColor(source.element.color);
-        canvas.drawRect(x, y, x + elemWidth, y + elemWidth, paint);
-      }
-    }
-  }
-
-  private void drawFps(Canvas canvas) {
-    Paint paint = new Paint();
+    paint.getTextBounds(fps, 0, fps.length(), bounds);
+    canvas.drawRect(0, 0, Math.max(lastFpsRight, bounds.right), -bounds.top, paint);
+    lastFpsRight = bounds.right;
     paint.setColor(Color.WHITE);
-    canvas.drawText("FPS: " + fpsCounter.getFps(), 0, 20, paint);
+    canvas.drawText(fps, 0, -bounds.top, paint);
   }
 }

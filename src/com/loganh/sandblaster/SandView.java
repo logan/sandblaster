@@ -1,5 +1,7 @@
 package com.loganh.sandblaster;
 
+import java.io.*;
+
 import android.content.Context;
 import android.os.SystemClock;
 import android.util.AttributeSet;
@@ -19,7 +21,7 @@ public class SandView extends SurfaceView {
   // If a single location is touched for this long (in ms), make it permanent.
   static final private long PEN_STICK_THRESHOLD = 500;
 
-  private SandBox sandbox;
+  public SandBox sandbox;
   private SandBoxDriver driver;
   private SandBoxRenderer renderer;
   private PaletteView palette;
@@ -54,12 +56,26 @@ public class SandView extends SurfaceView {
     driver = null;
   }
 
+  synchronized public void setSandbox(SandBox sandbox) {
+    stopDriver();
+    this.sandbox = sandbox;
+  }
+
   public void resume() {
     startDriver();
   }
 
   public void pause() {
     stopDriver();
+    if (sandbox != null) {
+      Snapshot snapshot = new Snapshot(sandbox);
+      snapshot.name = "Autosave";
+      try {
+        snapshot.save(getContext());
+      } catch (IOException ex) {
+        Log.e("Failed to autosave snapshot", ex);
+      }
+    }
   }
 
   synchronized public void clear() {
@@ -68,34 +84,49 @@ public class SandView extends SurfaceView {
     }
   }
 
-  public void makeBigger() {
+  public boolean makeBigger() {
     if (scaleIndex > 0) {
       scaleIndex--;
       resetSandbox();
     }
+    return scaleIndex > 0;
   }
 
-  public void makeSmaller() {
+  public boolean makeSmaller() {
     if (scaleIndex < SCALES.length - 1) {
       scaleIndex++;
       resetSandbox();
     }
+    return scaleIndex < SCALES.length - 1;
   }
 
   synchronized private void resetSandbox() {
     float scale = SCALES[scaleIndex];
     Log.i("creating {0} x {1} sandbox", getWidth() * scale, getHeight() * scale);
     stopDriver();
-    sandbox = new SandBox((int) getWidth(), (int) getHeight(), scale);
+    sandbox = new SandBox((int) (scale * getWidth()), (int) (scale * getHeight()));
     startDriver();
   }
 
   @Override
   public void onLayout(boolean changed, int left, int top, int right, int bottom) {
     if (sandbox == null) {
-      resetSandbox();
-      installDemo();
+      try {
+        Snapshot snapshot = new Snapshot("Autosave", getContext());
+        setSandbox(snapshot.sandbox);
+      } catch (IOException ex) {
+        Log.e("unable to load Autosave", ex);
+        installDemo();
+      }
     }
+  }
+
+  private int scaleX(float x) {
+    return Math.round(sandbox.getWidth() * x / getWidth());
+  }
+
+  private int scaleY(float y) {
+    return Math.round(sandbox.getHeight() - sandbox.getHeight() * y / getHeight() - 1);
   }
 
   @Override
@@ -108,13 +139,13 @@ public class SandView extends SurfaceView {
       // TODO: pressure sensitivity
       penDown = true;
       penDownTime = SystemClock.uptimeMillis();
-      lastPenX = sandbox.fromCanvasX(event.getX());
-      lastPenY = sandbox.fromCanvasY(event.getY());
+      lastPenX = scaleX(event.getX());
+      lastPenY = scaleY(event.getY());
       sandbox.addSource(palette.getElement(), lastPenX, lastPenY);
       return true;
     } else if (penDown && event.getAction() == MotionEvent.ACTION_MOVE) {
-      int newPenX = sandbox.fromCanvasX(event.getX());
-      int newPenY = sandbox.fromCanvasY(event.getY());
+      int newPenX = scaleX(event.getX());
+      int newPenY = scaleY(event.getY());
       if (newPenX == lastPenX && newPenY == lastPenY) {
         return true;
       }
@@ -139,6 +170,8 @@ public class SandView extends SurfaceView {
   synchronized public void installDemo() {
     startDriver();
     clear();
-    Demo.install(sandbox);
+    if (sandbox != null) {
+      Demo.install(sandbox);
+    }
   }
 }
