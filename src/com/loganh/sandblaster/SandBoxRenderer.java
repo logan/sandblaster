@@ -11,7 +11,7 @@ import android.view.SurfaceView;
 public class SandBoxRenderer {
 
   private static final int VOID_COLOR = Color.rgb(0, 0, 0);
-  private static final int PADDING_COLOR = Color.rgb(0xcc, 0xcc, 0xcc);
+  private static final int PADDING_COLOR = Color.rgb(0x11, 0x11, 0x11);
 
   public static abstract class Camera {
 

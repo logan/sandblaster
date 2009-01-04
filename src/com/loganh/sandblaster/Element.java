@@ -19,6 +19,9 @@ public enum Element {
   SALTWATER (Color.rgb(0x88, 0x88, 0xff), true, 0.45),
   DEADPLANT (Color.rgb(0xaa, 0x88, 0x00), true, 0.2);
 
+  private static int NUM_ELEMENTS = EnumSet.allOf(Element.class).size();
+  private static Transmutation[] transmutationArray = new Transmutation[NUM_ELEMENTS * NUM_ELEMENTS];
+
   // Set up transmutations and decay products.
   static {
     PLANT.addTransmutation(WATER, PLANT, 0.5);
@@ -47,28 +50,27 @@ public enum Element {
   public double decayProbability;
   public Element decayProduct;
   public int lifetime;
-
-  public Map<Element, Transmutation> transmutations;
+  public int transmutationCount;
+  public int index;
+  public int rowOffset;
 
   Element(int color, boolean mobile, double density) {
     this.color = color;
     this.mobile = mobile;
     this.density = density;
+    index = ordinal();
   }
 
   public void addTransmutation(Element target, Element output, double probability) {
-    if (transmutations == null) {
-      transmutations = new EnumMap(getClass());
-    }
-    transmutations.put(target, new Transmutation(target, output, probability));
+    rowOffset = index * NUM_ELEMENTS;
+    transmutationArray[rowOffset + target.index] = new Transmutation(target, output, probability);
+    transmutationCount++;
   }
 
   public Element maybeTransmutate(Element target) {
-    if (transmutations != null) {
-      Transmutation transmutation = transmutations.get(target);
-      if (transmutation != null && random.nextDouble() < transmutation.probability) {
-        return transmutation.output;
-      }
+    Transmutation transmutation = transmutationArray[rowOffset + target.index];
+    if (transmutation != null && random.nextDouble() < transmutation.probability) {
+      return transmutation.output;
     }
     return target;
   }
@@ -88,6 +90,10 @@ public enum Element {
       this.target = target;
       this.output = output;
       this.probability = probability;
+    }
+
+    public String toString() {
+      return "[Transmutation " + target + " -> " + output + " at p=" + probability + "]";
     }
   }
 }

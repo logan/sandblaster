@@ -216,7 +216,7 @@ public class SandBox {
           continue;
         }
         // Transmutations.
-        if (e.transmutations != null && lastSet[x][y] != iteration) {
+        if (e.transmutationCount > 0 && lastSet[x][y] != iteration) {
           for (int xo = -1; xo < 2; xo++) {
             for (int yo = -1; yo < 2; yo++) {
               if ((xo != 0 || yo != 0) && (xo == 0 || yo == 0)) {
