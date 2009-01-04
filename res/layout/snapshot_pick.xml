@@ -30,7 +30,6 @@
 
   <ListView
       android:id="@+id/snapshot_list"
-      android:choiceMode="singleChoice"
       android:layout_width="fill_parent"
       android:layout_height="fill_parent"/>
 

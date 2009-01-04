@@ -19,6 +19,7 @@ import android.os.Bundle;
 import android.util.Xml;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -212,7 +213,18 @@ public class Snapshot implements Comparable<Snapshot> {
 
       if (getIntent().getType().equals("application/x-sandblaster-saveable")) {
         final Button button = (Button) findViewById(R.id.save_button);
-        EditText text = (EditText) findViewById(R.id.save_input);
+        final EditText text = (EditText) findViewById(R.id.save_input);
+        text.setOnKeyListener(new View.OnKeyListener() {
+              public boolean onKey(View v, int keyCode, KeyEvent event) {
+                if (keyCode == KeyEvent.KEYCODE_ENTER && !event.isShiftPressed()) {
+                  if (event.getAction() == KeyEvent.ACTION_DOWN && button.isEnabled()) {
+                    finish(text.getText().toString());
+                  }
+                  return true;
+                }
+                return false;
+              }
+            });
         text.addTextChangedListener(new TextWatcher() {
               public void afterTextChanged(Editable s) {
                 button.setEnabled(s.length() > 0 && !s.toString().contains("/"));
