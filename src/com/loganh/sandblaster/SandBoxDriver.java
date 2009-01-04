@@ -9,12 +9,12 @@ public class SandBoxDriver extends Thread {
   private SandBoxRenderer renderer;
   private float fps;
   private boolean stopped;
+  private boolean sleeping;
 
   public SandBoxDriver(SandBox sandbox, SandBoxRenderer renderer, float fps) {
     this.sandbox = sandbox;
     this.renderer = renderer;
     this.fps = fps;
-    setPriority(currentThread().getPriority() - 1);
   }
 
   @Override
@@ -25,10 +25,11 @@ public class SandBoxDriver extends Thread {
       long now = SystemClock.uptimeMillis();
       long remaining = lastUpdate + dtms - now;
       if (remaining <= 0) {
-        computePhysics();
-        draw();
+        if (!sleeping) {
+          computePhysics();
+          draw();
+        }
         lastUpdate = now;
-        Thread.yield();
       } else {
         SystemClock.sleep(remaining);
       }
@@ -42,6 +43,14 @@ public class SandBoxDriver extends Thread {
     } catch (InterruptedException ex) {
       Log.e("InterruptedException thrown on SandBoxDriver.join", ex);
     }
+  }
+
+  public void sleep() {
+    sleeping = true;
+  }
+
+  public void wake() {
+    sleeping = false;
   }
 
   private void computePhysics() {

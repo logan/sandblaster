@@ -224,6 +224,7 @@ public class SandActivity extends Activity {
       Log.i("creating new driver");
       driver = new SandBoxDriver(sandbox, view.getRenderer(), FPS);
       driver.start();
+      view.setSandBoxDriver(driver);
       Log.i("driver started");
     }
   }

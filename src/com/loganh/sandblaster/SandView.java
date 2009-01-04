@@ -23,6 +23,7 @@ public class SandView extends LinearLayout {
   private SurfaceView surface;
   private ZoomControls zoomControls;
   private SandBox sandbox;
+  private SandBoxDriver driver;
   private SandBoxRenderer renderer;
   private SandBoxRenderer.Camera camera;
   private PaletteView palette;
@@ -86,6 +87,22 @@ public class SandView extends LinearLayout {
     Log.i("zoomed to {0}", scale);
   }
 
+  public void setSandBoxDriver(SandBoxDriver driver) {
+    this.driver = driver;
+  }
+
+  private void driverSleep() {
+    if (driver != null) {
+      driver.sleep();
+    }
+  }
+
+  private void driverWake() {
+    if (driver != null) {
+      driver.wake();
+    }
+  }
+
   public void zoomIn() {
     if (canZoomIn()) {
       setScale(scale * ZOOM_FACTOR);
@@ -133,7 +150,7 @@ public class SandView extends LinearLayout {
       return false;
     }
     Point eventPoint = new Point((int) event.getX(), (int) event.getY());
-    Log.i("event point: {0}");
+    Log.i("event point: {0}", eventPoint);
     if (event.getAction() == MotionEvent.ACTION_DOWN) {
       // TODO: line drawing
       // TODO: pressure sensitivity
@@ -141,7 +158,9 @@ public class SandView extends LinearLayout {
       penDownTime = SystemClock.uptimeMillis();
       lastPen = camera.viewToObject(eventPoint);
       Log.i("add source {0} at {1}", palette.getElement(), lastPen);
+      driverSleep();
       sandbox.addSource(palette.getElement(), lastPen.x, lastPen.y);
+      driverWake();
       return true;
     } else if (penDown && event.getAction() == MotionEvent.ACTION_MOVE) {
       Point newPen = camera.viewToObject(eventPoint);
@@ -149,16 +168,20 @@ public class SandView extends LinearLayout {
         return true;
       }
       penDownTime = SystemClock.uptimeMillis();
+      driverSleep();
       sandbox.removeSource(lastPen.x, lastPen.y);
       sandbox.line(palette.getElement(), lastPen.x, lastPen.y, newPen.x, newPen.y);
       lastPen = newPen;
       Log.i("add source {0} at {1}", palette.getElement(), lastPen);
       sandbox.addSource(palette.getElement(), lastPen.x, lastPen.y);
+      driverWake();
       return true;
     } else if (penDown && event.getAction() == MotionEvent.ACTION_UP) {
       Log.i("pen was down for {0} ms", SystemClock.uptimeMillis() - penDownTime);
       if (SystemClock.uptimeMillis() - penDownTime < PEN_STICK_THRESHOLD) {
+        driverSleep();
         sandbox.removeSource(lastPen.x, lastPen.y);
+        driverWake();
       }
       penDown = false;
       return true;
