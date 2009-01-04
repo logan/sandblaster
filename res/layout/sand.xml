@@ -14,6 +14,7 @@
 
     <SurfaceView
         android:id="@+id/surface"
+        android:keepScreenOn="true"
         android:gravity="top"
         android:layout_weight="1"
         android:layout_width="fill_parent"
