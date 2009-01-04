@@ -74,7 +74,6 @@ public class SandActivity extends Activity {
     stopDriver();
     this.sandbox = sandbox;
     view.setSandBox(sandbox);
-    startDriver();
   }
 
   @Override
@@ -222,15 +221,19 @@ public class SandActivity extends Activity {
   private void startDriver() {
     stopDriver();
     if (sandbox != null) {
+      Log.i("creating new driver");
       driver = new SandBoxDriver(sandbox, view.getRenderer(), FPS);
       driver.start();
+      Log.i("driver started");
     }
   }
 
   private void stopDriver() {
     if (driver != null) {
+      Log.i("waiting for driver to shut down...");
       driver.shutdown();
     }
+    Log.i("driver shut down");
     driver = null;
     if (sandbox != null) {
       Snapshot snapshot = new Snapshot(sandbox);
@@ -245,6 +248,7 @@ public class SandActivity extends Activity {
 
   private void clear() {
     setSandBox(new SandBox());
+    startDriver();
   }
 
   private void installDemo() {

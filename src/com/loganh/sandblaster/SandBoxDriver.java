@@ -14,6 +14,7 @@ public class SandBoxDriver extends Thread {
     this.sandbox = sandbox;
     this.renderer = renderer;
     this.fps = fps;
+    setPriority(currentThread().getPriority() - 1);
   }
 
   @Override
@@ -27,6 +28,7 @@ public class SandBoxDriver extends Thread {
         computePhysics();
         draw();
         lastUpdate = now;
+        Thread.yield();
       } else {
         SystemClock.sleep(remaining);
       }

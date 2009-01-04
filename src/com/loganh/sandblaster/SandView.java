@@ -128,16 +128,19 @@ public class SandView extends LinearLayout {
 
   @Override
   public boolean onTouchEvent(MotionEvent event) {
+    Log.i("onTouchEvent: {0}", event);
     if (sandbox == null) {
       return false;
     }
     Point eventPoint = new Point((int) event.getX(), (int) event.getY());
+    Log.i("event point: {0}");
     if (event.getAction() == MotionEvent.ACTION_DOWN) {
       // TODO: line drawing
       // TODO: pressure sensitivity
       penDown = true;
       penDownTime = SystemClock.uptimeMillis();
       lastPen = camera.viewToObject(eventPoint);
+      Log.i("add source {0} at {1}", palette.getElement(), lastPen);
       sandbox.addSource(palette.getElement(), lastPen.x, lastPen.y);
       return true;
     } else if (penDown && event.getAction() == MotionEvent.ACTION_MOVE) {
@@ -149,6 +152,7 @@ public class SandView extends LinearLayout {
       sandbox.removeSource(lastPen.x, lastPen.y);
       sandbox.line(palette.getElement(), lastPen.x, lastPen.y, newPen.x, newPen.y);
       lastPen = newPen;
+      Log.i("add source {0} at {1}", palette.getElement(), lastPen);
       sandbox.addSource(palette.getElement(), lastPen.x, lastPen.y);
       return true;
     } else if (penDown && event.getAction() == MotionEvent.ACTION_UP) {
