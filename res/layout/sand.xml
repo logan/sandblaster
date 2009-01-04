@@ -6,22 +6,25 @@
 
   <com.loganh.sandblaster.SandView 
       android:id="@+id/sand"
-      android:orientation="vertical"
+      android:focusable="true"
       android:gravity="top"
+      android:orientation="vertical"
       android:layout_weight="1"
       android:layout_width="fill_parent"
       android:layout_height="256px">
 
     <SurfaceView
         android:id="@+id/surface"
-        android:keepScreenOn="true"
+        android:focusable="false"
         android:gravity="top"
+        android:keepScreenOn="true"
         android:layout_weight="1"
         android:layout_width="fill_parent"
         android:layout_height="224px"/>
 
     <com.loganh.sandblaster.PaletteView
         android:id="@+id/palette"
+        android:focusable="false"
         android:gravity="bottom"
         android:layout_weight="0"
         android:layout_width="fill_parent"
@@ -30,6 +33,7 @@
 
     <ZoomControls
         android:id="@+id/zoom"
+        android:focusable="false"
         android:layout_gravity="bottom|center"
         android:layout_weight="0"
         android:layout_width="wrap_content"

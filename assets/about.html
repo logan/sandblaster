@@ -23,23 +23,15 @@
     <h2>Controls</h2>
 
     <p>
-      At the bottom of the screen, you'll find a <i>palette</i> containing squares for each of the types
-      of elements that you can draw with. The currently selected element will have a white border around it.
-      Touch one of these squares to select it as the current drawing element.
+      Touch the screen in the canvas to draw particles with the currently selected element. The selected element
+      comes from the <i>palette</i> below the canvas, which contains colored boxes labelled with element names.
+      Touch one of these boxes to change the selected element.
     </p>
 
     <p>
-      If you touch any other part of the screen, you will insert a particle of the currently selected element.
-      Hold down or drag your finger tip to continuously insert particles. If you hold your finger on the same pixel for more than
-      half a second and then release, then the same element will continuously be inserted in the same location forever until
-      you draw over it.
-    </p>
-
-    <p>
-      The cost of simulating and rendering particles is proportional to the number of particles on the screen. For this reason,
-      the application defaults to a low resolution. Choosing <i>Smaller</i> from the menu will increase the resolution, at the expense
-      of frame rate and batter power. Choosing <i>Bigger</i> will decrease the resolution.
-    </p>
+      Use the zoom controls at the bottom of the screen to zoom in or out. Spin the trackball to pan your view of
+      the canvas in any direction. You can recenter your view and restore the zoom level by clicking <tt>MENU</tt> and
+      clicking on the <i>Zoom to fit</i> option.
 
     <h2>Types of Particles</h2>
 
@@ -99,6 +91,14 @@
         </td>
       </tr>
     </table>
+
+    <h2>Loading and Saving</h2>
+
+    <p>
+      You can save the state of your sandbox by clicking <tt>MENU</tt> and choosing the <i>Save</i> option.
+      Type in a name for your sandbox, or overwrite an existing snapshot by touching it in the list below
+      the save form. These snapshots can be loaded at any time by choosing the <i>Load</i> menu option.
+    </p>
 
     <h2>Open Source Project</h2>
 

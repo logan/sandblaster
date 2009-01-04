@@ -4,6 +4,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
+import android.graphics.PointF;
 import android.graphics.Rect;
 import android.view.SurfaceView;
 
@@ -15,21 +16,29 @@ public class SandBoxRenderer {
   public static abstract class Camera {
 
     private float scale;
-    private Point offset;
+    private PointF offset;
 
     public Camera(float scale) {
       this.scale = scale;
-      offset = new Point(0, 0);
+      recenter();
     }
 
     public void setScale(float scale) {
       this.scale = scale;
     }
 
+    public void pan(float x, float y) {
+      offset.offset(x, y);
+    }
+
+    public void recenter() {
+      offset = new PointF(0, 0);
+    }
+
     private Point getOffset() {
       Point o = getObjectSize();
       Point v = getViewSize();
-      return new Point(offset.x + Math.round((v.x - o.x * scale) / 2), offset.y + Math.round((v.y - o.y * scale) / 2));
+      return new Point(Math.round(offset.x + (v.x - o.x * scale) / 2), Math.round(offset.y + (v.y - o.y * scale) / 2));
     }
 
     public Point viewToObject(Point pt) {
@@ -71,7 +80,7 @@ public class SandBoxRenderer {
             setPixels(sandbox);
             draw(sandbox, canvas);
             fpsCounter.update();
-            if (true || SandActivity.DEBUG) {
+            if (SandActivity.DEBUG) {
               drawFps(canvas);
             }
           }

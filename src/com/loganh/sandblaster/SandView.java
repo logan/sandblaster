@@ -16,6 +16,7 @@ public class SandView extends LinearLayout {
   static final private float ZOOM_FACTOR = 1.2f;
   static final private float MIN_SCALE = 1f;
   static final private float MAX_SCALE = 16f;
+  static final private float SCROLL_FACTOR = 30;
 
   // If a single location is touched for this long (in ms), make it permanent.
   static final private long PEN_STICK_THRESHOLD = 500;
@@ -117,6 +118,7 @@ public class SandView extends LinearLayout {
 
   public void zoomToFit() {
     setScale(Math.min(getWidth() / (float) sandbox.getWidth(), getHeight() / (float) sandbox.getHeight()));
+    camera.recenter();
   }
 
   private void setScale(float scale) {
@@ -178,6 +180,15 @@ public class SandView extends LinearLayout {
         driverWake();
       }
       penDown = false;
+      return true;
+    }
+    return false;
+  }
+
+  @Override
+  public boolean onTrackballEvent(MotionEvent event) {
+    if (event.getAction() == MotionEvent.ACTION_MOVE) {
+      camera.pan(SCROLL_FACTOR * event.getX(), SCROLL_FACTOR * event.getY());
       return true;
     }
     return false;
