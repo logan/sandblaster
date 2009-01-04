@@ -122,11 +122,13 @@ public class SandView extends LinearLayout {
   }
 
   private void setScale(float scale) {
+    driverSleep();
     Log.i("setting scale from {0} to {1}", this.scale, scale);
     this.scale = scale;
     camera.setScale(scale);
     zoomControls.setIsZoomInEnabled(canZoomIn());
     zoomControls.setIsZoomOutEnabled(canZoomOut());
+    driverWake();
   }
 
   public boolean canZoomIn() {

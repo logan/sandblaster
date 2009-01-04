@@ -46,6 +46,9 @@ public class Snapshot implements Comparable<Snapshot> {
   static final public int THUMBNAIL_WIDTH = 60;
   static final public int THUMBNAIL_HEIGHT = 60;
 
+  // XML packing
+  static final public int PACK_RUN_LENGTH = 64;
+
   // TODO: put a schema somewhere
   public static final String NS = "http://sandblaster.googlecode.com/svn/trunk/";
 
@@ -162,26 +165,61 @@ public class Snapshot implements Comparable<Snapshot> {
     }
 
     for (int y = 0; y < h; y++) {
-      for (int x = 0; x < w; x = sandbox.rightNeighbors[x][y]) {
+      int runStart = -1;
+      StringBuffer pack = new StringBuffer();
+      for (int x = 0; x < w; x++) {
         Element e = sandbox.elements[x][y];
         if (e != null) {
+          if (runStart == -1) {
+            runStart = x;
+          }
+          pack.append((char) ((int) 'A' + e.index));
+          /*
           serializer.startTag(null, "particle")
               .attribute(null, "x", Integer.toString(x))
               .attribute(null, "y", Integer.toString(y))
               .attribute(null, "element", e.toString().toLowerCase())
               .endTag(null, "particle");
+              */
+        } else if(runStart != -1) {
+          pack.append('.');
         }
+        if (pack.length() >= PACK_RUN_LENGTH) {
+          emitPackedRow(serializer, runStart, y, pack.toString());
+          runStart = -1;
+          pack = new StringBuffer();
+        }
+      }
+      if (runStart != -1) {
+        emitPackedRow(serializer, runStart, y, pack.toString());
       }
     }
 
     serializer.endDocument();
   }
 
+  static private void emitPackedRow(XmlSerializer serializer, int x, int y, String pack) throws IOException {
+    int last = pack.length();
+    while (last-- > 0) {
+      if (pack.charAt(last) != '.') {
+        break;
+      }
+    }
+    serializer.startTag(null, "particle-sequence")
+        .attribute(null, "x", Integer.toString(x))
+        .attribute(null, "y", Integer.toString(y))
+        .text(pack.substring(0, last + 1))
+        .endTag(null, "particle-sequence");
+  }
+
   static public SandBox read(Reader reader) throws IOException, XmlPullParserException {
     SandBox sandbox = null;
     XmlPullParser parser = XmlPullParserFactory.newInstance().newPullParser();
     parser.setInput(reader);
+    int sequenceX = -1;
+    int sequenceY = -1;
     int eventType = parser.getEventType();
+    boolean inSequence = false;
     while (eventType != XmlPullParser.END_DOCUMENT) {
       if (eventType == XmlPullParser.START_TAG) {
         if (parser.getName().equals("sandbox")) {
@@ -196,6 +234,28 @@ public class Snapshot implements Comparable<Snapshot> {
             sandbox.addSource(element, x, y);
           } else {
             sandbox.setParticle(x, y, element);
+          }
+        } else if (parser.getName().equals("particle-sequence")) {
+          inSequence = true;
+          sequenceX = Integer.parseInt(parser.getAttributeValue(null, "x"));
+          sequenceY = Integer.parseInt(parser.getAttributeValue(null, "y"));
+        }
+      } else if (eventType == XmlPullParser.END_TAG) {
+        if (parser.getName().equals("particle-sequence")) {
+          inSequence = false;
+        }
+      } else if (eventType == XmlPullParser.TEXT) {
+        if (inSequence) {
+          String pack = parser.getText().trim();
+          for (int i = 0; i < pack.length(); i++) {
+            if (pack.charAt(i) != '.') {
+              for (Element e : Element.values()) {
+                if ((char) ((int) 'A' + e.ordinal()) == pack.charAt(i)) {
+                  sandbox.setParticle(sequenceX + i, sequenceY, e);
+                  break;
+                }
+              }
+            }
           }
         }
       }
