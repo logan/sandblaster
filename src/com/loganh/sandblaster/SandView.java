@@ -16,7 +16,7 @@ public class SandView extends LinearLayout {
   static final private float ZOOM_FACTOR = 1.2f;
   static final private float MIN_SCALE = 1f;
   static final private float MAX_SCALE = 16f;
-  static final private float SCROLL_FACTOR = 30;
+  static final private float SCROLL_FACTOR = -30;
 
   // If a single location is touched for this long (in ms), make it permanent.
   static final private long PEN_STICK_THRESHOLD = 500;
