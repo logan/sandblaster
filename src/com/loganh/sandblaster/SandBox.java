@@ -21,6 +21,9 @@ public class SandBox {
 
   // Particles.
 
+  // Table of elements.
+  public ElementTable elementTable;
+
   // Element of the particle at (x, y).
   public Element[][] elements;
 
@@ -222,7 +225,7 @@ public class SandBox {
               if ((xo != 0 || yo != 0) && (xo == 0 || yo == 0)) {
                 if (x + xo >= 0 && x + xo < width && y + yo >= 0 & y + yo < height
                     && elements[x + xo][y + yo] != null && lastSet[x + xo][y + yo] != iteration) {
-                  Element o = e.maybeTransmutate(elements[x + xo][y + yo]);
+                  Element o = elementTable.maybeTransmutate(e, elements[x + xo][y + yo]);
                   if (o != elements[x + xo][y + yo]) {
                     setParticle(x + xo, y + yo, o);
                   }
@@ -236,7 +239,7 @@ public class SandBox {
         if (lastSet[x][y] != iteration && e.decayProbability > 0 && random.nextFloat() < e.decayProbability) {
           ages[x][y]++;
           if (ages[x][y] > e.lifetime) {
-            setParticle(x, y, e.decayProduct);
+            setParticle(x, y, e.decayProducts == null ? null : e.decayProducts.pickProduct());
             continue;
           }
         }

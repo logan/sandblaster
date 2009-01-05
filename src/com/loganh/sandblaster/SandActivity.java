@@ -16,6 +16,8 @@ import android.view.Window;
 import android.webkit.WebView;
 import android.widget.TextView;
 
+import org.xmlpull.v1.XmlPullParserException;
+
 public class SandActivity extends Activity {
 
   // Maximum FPS.
@@ -51,7 +53,6 @@ public class SandActivity extends Activity {
     setContentView(R.layout.sand);
     view = (SandView) findViewById(R.id.sand);
     palette = (PaletteView) findViewById(R.id.palette);
-    palette.invalidate();
     assert(view != null);
     assert(palette != null);
     view.setPaletteView(palette);
@@ -62,18 +63,23 @@ public class SandActivity extends Activity {
   private void initializeSandBox() {
     try {
       Snapshot snapshot = new Snapshot("Autosave", this);
-      setSandBox(snapshot.sandbox);
+      if (snapshot.sandbox != null) {
+        setSandBox(snapshot.sandbox);
+        return;
+      } else {
+        Log.e("Error parsing Autosave");
+      }
     } catch (IOException ex) {
-      Log.e("unable to load Autosave", ex);
-      setSandBox(new SandBox());
-      installDemo();
+      Log.e("Unable to load Autosave", ex);
     }
+    setSandBox(loadNewSandBox());
   }
 
   public void setSandBox(SandBox sandbox) {
     stopDriver();
     this.sandbox = sandbox;
     view.setSandBox(sandbox);
+    palette.setElementTable(sandbox.elementTable);
   }
 
   @Override
@@ -152,11 +158,19 @@ public class SandActivity extends Activity {
         if (resultCode == Snapshot.LOAD_SNAPSHOT_RESULT) {
           String name = data.getData().getSchemeSpecificPart();
           try {
+            Log.i("Loading {0}", name);
             Snapshot snapshot = new Snapshot(name, this);
+            if (snapshot.sandbox == null) {
+              Log.i("Bad load, attempting 1.5 mode");
+              snapshot.sandbox = loadNewSandBox();
+              Snapshot.read_1_5(snapshot.sandbox, name, this);
+            }
             setSandBox(snapshot.sandbox);
             Log.i("loaded {0}", snapshot.name);
           } catch (IOException ex) {
             Log.e("failed to load " + name, ex);
+          } catch (XmlPullParserException ex) {
+            Log.e("failed to parse " + name, ex);
           }
         }
         break;
@@ -177,6 +191,18 @@ public class SandActivity extends Activity {
         }
         break;
     }
+  }
+
+  private SandBox loadNewSandBox() {
+    try {
+      InputStream stream = getAssets().open("snapshot_new.xml");
+      return Snapshot.read(new InputStreamReader(stream), this);
+    } catch (IOException ex) {
+      Log.e("Failed to load snapshot_new.xml", ex);
+    } catch (XmlPullParserException ex) {
+      Log.e("Failed to parse snapshot_new.xml", ex);
+    }
+    return null;
   }
 
   private void about() {
@@ -248,12 +274,19 @@ public class SandActivity extends Activity {
   }
 
   private void clear() {
-    setSandBox(new SandBox());
+    setSandBox(loadNewSandBox());
     startDriver();
   }
 
   private void installDemo() {
-    clear();
-    Demo.install(sandbox);
+    try {
+      setSandBox(Snapshot.read(new InputStreamReader(getAssets().open("snapshot_demo.xml")), this));
+      setSandBox(sandbox);
+      startDriver();
+    } catch (IOException ex) {
+      Log.e("failed to load demo", ex);
+    } catch (XmlPullParserException ex) {
+      Log.e("failed to parse demo", ex);
+    }
   }
 }
