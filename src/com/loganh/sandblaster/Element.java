@@ -23,7 +23,9 @@ public class Element {
     }
 
     public Element pickProduct() {
-      if (products.length == 1) {
+      if (products.length == 0) {
+        return null;
+      } else if (products.length == 1) {
         return products[0];
       }
       float w = random.nextFloat() * totalWeight;

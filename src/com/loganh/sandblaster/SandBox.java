@@ -53,6 +53,7 @@ public class SandBox {
   public int lastDirtyIndex;
 
   // Iterating.
+  public boolean playing;
 
   // Keep track of which iteration certain events occurred in for each particle.
   private int iteration;

@@ -205,7 +205,8 @@ public class Snapshot implements Comparable<Snapshot> {
     serializer.setPrefix("sand", NS);
     serializer.startTag(NS, "sandbox")
         .attribute(NS, "width", Integer.toString(w))
-        .attribute(NS, "height", Integer.toString(h));
+        .attribute(NS, "height", Integer.toString(h))
+        .attribute(NS, "paused", sandbox.playing ? "false" : "true");
 
     serializer.startTag(NS, "element-set");
     for (Element element : sandbox.elementTable.elements) {
@@ -233,7 +234,6 @@ public class Snapshot implements Comparable<Snapshot> {
     serializer.endTag(NS, "element-set");
 
     for (SandBox.Source source : sandbox.getSources()) {
-      Log.i("serialize source: {0}, {1}, {2}", source.x, source.y, source.element);
       if (source.element != null) {
         serializer.startTag(NS, "source")
             .attribute(NS, "x", Integer.toString(source.x))
@@ -320,7 +320,6 @@ public class Snapshot implements Comparable<Snapshot> {
       Element[] elements = new Element[names.size()];
       float[] wts = new float[names.size()];
       for (int i = 0; i < elements.length; i++) {
-        Log.i("resolving decay product {0}", names.get(i));
         elements[i] = table.resolve(names.get(i));
         wts[i] = weights.get(i);
       }
@@ -379,6 +378,7 @@ public class Snapshot implements Comparable<Snapshot> {
           }
           Log.i("create sandbox: {0} x {1}", width, height);
           sandbox = new SandBox(width, height);
+          sandbox.playing = !getBooleanAttribute(parser, "paused", true);
         } else if (parser.getName().equals("default-element-set")) {
           elementTable = loadDefaultElementTable(context);
         } else if (parser.getName().equals("element-set")) {
@@ -442,7 +442,6 @@ public class Snapshot implements Comparable<Snapshot> {
               elementTable.addTransmutation(es[i], et.resolve(elementTable));
             }
             if (elements.get(i).decayProductSet != null) {
-              Log.i("resolving decay products for {0}", es[i].name);
               es[i].decayProducts = elements.get(i).decayProductSet.resolve(elementTable);
             }
           }

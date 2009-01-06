@@ -58,6 +58,6 @@ public class SandBoxDriver extends Thread {
   }
 
   private void draw() {
-    renderer.draw(sandbox);
+    renderer.draw();
   }
 }

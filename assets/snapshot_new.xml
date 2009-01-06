@@ -14,6 +14,7 @@
     <element sand:name="Water" sand:id="D" sand:drawable="true" sand:color="#0000ff" sand:density="0.4">
       <element-transform sand:subject="Salt" sand:probability="0.2" sand:product="Salt Water"/>
       <element-transform sand:subject="Dead Plant" sand:probability="0.25" sand:product="Plant"/>
+      <element-transform sand:subject="Steam" sand:probability="0.1" sand:product="Water"/>
       <element-decay sand:probability="0.01" sand:lifetime="20">
         <element-product sand:product="Steam" sand:weight="4"/>
         <element-product sand:product="Salt" sand:weight="1"/>

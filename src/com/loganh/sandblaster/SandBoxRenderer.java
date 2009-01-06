@@ -6,9 +6,10 @@ import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.Rect;
+import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
-public class SandBoxRenderer {
+public class SandBoxRenderer implements SurfaceHolder.Callback {
 
   private static final int VOID_COLOR = Color.rgb(0, 0, 0);
   private static final int PADDING_COLOR = Color.rgb(0x11, 0x11, 0x11);
@@ -58,6 +59,7 @@ public class SandBoxRenderer {
 
   private SurfaceView surfaceView;
   private Camera camera;
+  private SandBox sandbox;
   private FrameRateCounter fpsCounter;
   private int lastFpsRight;
 
@@ -65,20 +67,32 @@ public class SandBoxRenderer {
     this.surfaceView = surfaceView;
     this.camera = camera;
     fpsCounter = new FrameRateCounter();
+    surfaceView.getHolder().addCallback(this);
   }
 
-  public void draw(SandBox sandbox) {
-    Canvas canvas = null;
-    if (surfaceView.getHolder() == null) {
+  public void setSandBox(SandBox sandbox) {
+    this.sandbox = sandbox;
+  }
+
+  public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) { }
+  public void surfaceDestroyed(SurfaceHolder holder) { }
+
+  public void surfaceCreated(SurfaceHolder holder) {
+    draw();
+  }
+
+  public void draw() {
+    if (sandbox == null || surfaceView.getHolder() == null) {
       return;
     }
+    Canvas canvas = null;
     try {
       canvas = surfaceView.getHolder().lockCanvas();
       if (canvas != null) {
         synchronized (canvas) {
           synchronized (sandbox) {
             setPixels(sandbox);
-            draw(sandbox, canvas);
+            draw(canvas);
             fpsCounter.update();
             if (SandActivity.DEBUG) {
               drawFps(canvas);
@@ -108,7 +122,7 @@ public class SandBoxRenderer {
     }
   }
 
-  private void draw(SandBox sandbox, Canvas canvas) {
+  private void draw(Canvas canvas) {
     Point topLeft = camera.objectToView(new Point(0, sandbox.getHeight() - 1));
     Point bottomRight = camera.objectToView(new Point(sandbox.getWidth(), 0));
     Rect src = new Rect(0, 0, sandbox.getWidth(), sandbox.getHeight());

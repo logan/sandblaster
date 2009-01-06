@@ -9,6 +9,7 @@ import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ZoomControls;
 
@@ -32,6 +33,9 @@ public class SandView extends LinearLayout {
   private long penDownTime;
   private Point lastPen;
   private float scale;
+  private ImageButton playbackButton;
+  private OnClickListener playListener;
+  private OnClickListener pauseListener;
 
   public SandView(Context context, AttributeSet attrs) {
     super(context, attrs);
@@ -52,6 +56,31 @@ public class SandView extends LinearLayout {
     Log.i("Finish inflate");
     surface = (SurfaceView) findViewById(R.id.surface);
     zoomControls = (ZoomControls) findViewById(R.id.zoom);
+    playbackButton = (ImageButton) findViewById(R.id.playback);
+    playbackButton.setImageResource(android.R.drawable.ic_media_play);
+    //playbackButton.setEnabled(false);
+    playListener = new OnClickListener() {
+      public void onClick(View v) {
+        Log.i("click on play");
+        //playbackButton.setEnabled(false);
+        if (sandbox != null) {
+          ((SandActivity) getContext()).startDriver();
+        }
+      }
+    };
+
+    pauseListener = new OnClickListener() {
+      public void onClick(View v) {
+        Log.i("click on pause");
+        //playbackButton.setEnabled(false);
+        if (sandbox != null) {
+          ((SandActivity) getContext()).stopDriver();
+        }
+      }
+    };
+
+    playbackButton.setOnClickListener(playListener);
+
     renderer = new SandBoxRenderer(surface, camera);
 
     zoomControls.setOnZoomInClickListener(new OnClickListener() {
@@ -73,6 +102,22 @@ public class SandView extends LinearLayout {
     }
   }
 
+  public void onStart() {
+    playbackButton.setImageResource(android.R.drawable.ic_media_pause);
+    playbackButton.setEnabled(true);
+    playbackButton.setOnClickListener(pauseListener);
+  }
+
+  public void onStop() {
+    playbackButton.setImageResource(android.R.drawable.ic_media_play);
+    playbackButton.setEnabled(true);
+    playbackButton.setOnClickListener(playListener);
+    if (sandbox != null) {
+      Log.i("rendering");
+      renderer.draw();
+    }
+  }
+
   public SandBoxRenderer getRenderer() {
     return renderer;
   }
@@ -83,6 +128,8 @@ public class SandView extends LinearLayout {
 
   public void setSandBox(SandBox sandbox) {
     this.sandbox = sandbox;
+    renderer.setSandBox(sandbox);
+    playbackButton.setEnabled(true);
     Log.i("setSandBox calling zoomToFit");
     zoomToFit();
     Log.i("zoomed to {0}", scale);
@@ -128,6 +175,10 @@ public class SandView extends LinearLayout {
     camera.setScale(scale);
     zoomControls.setIsZoomInEnabled(canZoomIn());
     zoomControls.setIsZoomOutEnabled(canZoomOut());
+    if (sandbox != null) {
+      Log.i("rendering");
+      renderer.draw();
+    }
     driverWake();
   }
 
@@ -173,6 +224,7 @@ public class SandView extends LinearLayout {
       sandbox.line(palette.getElement(), lastPen.x, lastPen.y, newPen.x, newPen.y);
       lastPen = newPen;
       sandbox.addSource(palette.getElement(), lastPen.x, lastPen.y);
+      renderer.draw();
       driverWake();
       return true;
     } else if (penDown && event.getAction() == MotionEvent.ACTION_UP) {

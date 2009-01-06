@@ -31,13 +31,24 @@
         android:layout_height="23px"
         />
 
-    <ZoomControls
-        android:id="@+id/zoom"
-        android:focusable="false"
-        android:layout_gravity="bottom|center"
-        android:layout_weight="0"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+    <LinearLayout
+        android:layout_height="wrap_content"
+        android:layout_width="fill_parent">
+
+      <ImageButton
+          android:id="@+id/playback"
+          android:layout_height="wrap_content"
+          android:layout_width="wrap_content"/>
+
+      <ZoomControls
+          android:id="@+id/zoom"
+          android:focusable="false"
+          android:layout_gravity="right"
+          android:layout_weight="0"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"/>
+
+    </LinearLayout>
 
   </com.loganh.sandblaster.SandView>
 

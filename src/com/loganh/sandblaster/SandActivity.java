@@ -57,7 +57,6 @@ public class SandActivity extends Activity {
     assert(palette != null);
     view.setPaletteView(palette);
     initializeSandBox();
-    startDriver();
   }
 
   private void initializeSandBox() {
@@ -86,7 +85,12 @@ public class SandActivity extends Activity {
   public void onResume() {
     super.onResume();
     Log.i("resume");
-    startDriver();
+    Log.i("playing? {0}", sandbox.playing);
+    if (sandbox != null && sandbox.playing) {
+      startDriver();
+    } else {
+      stopDriver();
+    }
   }
 
   @Override
@@ -244,25 +248,29 @@ public class SandActivity extends Activity {
     startActivityForResult(intent, SAVE_SNAPSHOT_REQUEST);
   }
 
-  private void startDriver() {
+  public void startDriver() {
     stopDriver();
     if (sandbox != null) {
       Log.i("creating new driver");
       driver = new SandBoxDriver(sandbox, view.getRenderer(), FPS);
       driver.start();
       view.setSandBoxDriver(driver);
+      view.onStart();
+      sandbox.playing = true;
       Log.i("driver started");
     }
   }
 
-  private void stopDriver() {
+  public void stopDriver() {
     if (driver != null) {
       Log.i("waiting for driver to shut down...");
       driver.shutdown();
+      view.onStop();
     }
     Log.i("driver shut down");
     driver = null;
     if (sandbox != null) {
+      sandbox.playing = false;
       Snapshot snapshot = new Snapshot(sandbox);
       snapshot.name = "Autosave";
       try {
