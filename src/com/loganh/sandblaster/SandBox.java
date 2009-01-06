@@ -223,7 +223,8 @@ public class SandBox {
         if (e.transmutationCount > 0 && lastSet[x][y] != iteration) {
           for (int xo = -1; xo < 2; xo++) {
             for (int yo = -1; yo < 2; yo++) {
-              if ((xo != 0 || yo != 0) && (xo == 0 || yo == 0)) {
+              //if ((xo != 0 || yo != 0) && (xo == 0 || yo == 0)) {
+              if (xo != 0 || yo != 0) {
                 if (x + xo >= 0 && x + xo < width && y + yo >= 0 & y + yo < height
                     && elements[x + xo][y + yo] != null && lastSet[x + xo][y + yo] != iteration) {
                   Element o = elementTable.maybeTransmutate(e, elements[x + xo][y + yo]);
@@ -255,27 +256,41 @@ public class SandBox {
         if (e.density > 0) {
           // Slide only if blocked below.
           if (y - 1 >= 0 && (!isMobile(x, y - 1) || e.density <= effectiveDensity(x, y - 1))) {
-            if (isMobile(nx, y) && e.density > effectiveDensity(nx, y)) {
-              swap(x, y, nx, y);
+            float nd = effectiveDensity(nx, y);
+            if (isMobile(nx, y) && e.density > nd) {
+              if (nd == 0 || random.nextFloat() < e.density - nd) {
+                swap(x, y, nx, y);
+              }
             }
           }
         } else if (e.density < 0) {
           // Slide only if blocked above.
           if (y + 1 < height && (!isMobile(x, y + 1) || e.density >= effectiveDensity(x, y + 1))) {
-            if (isMobile(nx, y) && e.density < effectiveDensity(nx, y)) {
-              swap(x, y, nx, y);
+            float nd = effectiveDensity(nx, y);
+            if (isMobile(nx, y) && e.density < nd) {
+              if (nd == 0 || random.nextFloat() < nd - e.density) {
+                swap(x, y, nx, y);
+              }
             }
           }
         }
 
         // Vertical movement.
-        if (isMobile(x, y - 1) && e.density > effectiveDensity(x, y - 1)) {
-          swap(x, y, x, y - 1);
-          lastFloated[x][y] = iteration;
-        } else if (lastFloated[x][y] != iteration && isMobile(x, y + 1) && e.density < effectiveDensity(x, y + 1)) {
-          swap(x, y, x, y + 1);
-          if (y + 1 < height) {
-            lastFloated[x][y + 1] = iteration;
+        float nd = effectiveDensity(x, y - 1);
+        if (isMobile(x, y - 1) && e.density > nd) {
+          if (nd == 0 || random.nextFloat() < e.density - nd) {
+            swap(x, y, x, y - 1);
+            lastFloated[x][y] = iteration;
+          }
+        } else {
+          nd = effectiveDensity(x, y + 1);
+          if (lastFloated[x][y] != iteration && isMobile(x, y + 1) && e.density < nd) {
+            if (nd == 0 || random.nextFloat() < nd - e.density) {
+              swap(x, y, x, y + 1);
+              if (y + 1 < height) {
+                lastFloated[x][y + 1] = iteration;
+              }
+            }
           }
         }
       }
@@ -300,7 +315,7 @@ public class SandBox {
     ages[x2][y2] = l1;
   }
 
-  private double effectiveDensity(int x, int y) {
+  private float effectiveDensity(int x, int y) {
     if (x < 0 || y < 0 || x >= width || y >= height || elements[x][y] == null) {
       return 0;
     }

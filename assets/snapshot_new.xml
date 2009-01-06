@@ -12,8 +12,8 @@
     </element>
 
     <element sand:name="Water" sand:id="D" sand:drawable="true" sand:color="#0000ff" sand:density="0.4">
-      <element-transform sand:subject="Salt" sand:probability="0.2" sand:product="Salt Water"/>
-      <element-transform sand:subject="Dead Plant" sand:probability="0.25" sand:product="Plant"/>
+      <element-transform sand:subject="Salt" sand:probability="0.1" sand:product="Salt Water"/>
+      <element-transform sand:subject="Dead Plant" sand:probability="0.1" sand:product="Plant"/>
       <element-transform sand:subject="Steam" sand:probability="0.1" sand:product="Water"/>
       <element-decay sand:probability="0.01" sand:lifetime="20">
         <element-product sand:product="Steam" sand:weight="4"/>
@@ -24,20 +24,20 @@
     <element sand:name="Oil" sand:id="E" sand:drawable="true" sand:color="#cc3300" sand:density="0.3"/>
 
     <element sand:name="Plant" sand:id="F" sand:drawable="true" sand:color="#00ff00" sand:mobile="false">
-      <element-transform sand:subject="Water" sand:probability="0.4" sand:product="Plant"/>
+      <element-transform sand:subject="Water" sand:probability="0.2" sand:product="Plant"/>
       <element-decay sand:probability="0.05" sand:lifetime="20" sand:product="Dead Plant"/>
     </element>
 
     <element sand:name="Fire" sand:id="G" sand:drawable="true" sand:color="#ff0000" sand:density="-0.1">
-      <element-transform sand:subject="Plant" sand:probability="0.4" sand:product="Fire"/>
-      <element-transform sand:subject="Dead Plant" sand:probability="0.8" sand:product="Fire"/>
-      <element-transform sand:subject="Oil" sand:probability="1.0" sand:product="Fire"/>
-      <element-transform sand:subject="Water" sand:probability="0.8" sand:product="Steam"/>
-      <element-transform sand:subject="Salt Water" sand:probability="0.8">
+      <element-transform sand:subject="Plant" sand:probability="0.2" sand:product="Fire"/>
+      <element-transform sand:subject="Dead Plant" sand:probability="0.3" sand:product="Fire"/>
+      <element-transform sand:subject="Oil" sand:probability="0.4" sand:product="Fire"/>
+      <element-transform sand:subject="Water" sand:probability="0.2" sand:product="Steam"/>
+      <element-transform sand:subject="Salt Water" sand:probability="0.2">
         <element-product sand:product="Steam" sand:weight="4"/>
         <element-product sand:product="Salt" sand:weight="1"/>
       </element-transform>
-      <element-decay sand:probability="0.5" sand:lifetime="2"/>
+      <element-decay sand:probability="0.2" sand:lifetime="2"/>
     </element>
 
     <!-- Secondary elements -->
