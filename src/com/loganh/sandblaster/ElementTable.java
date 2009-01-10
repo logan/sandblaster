@@ -2,11 +2,6 @@ package com.loganh.sandblaster;
 
 import java.util.*;
 
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-import org.xmlpull.v1.XmlPullParserFactory;
-import org.xmlpull.v1.XmlSerializer;
-
 
 public class ElementTable {
   public Element[] elements;
@@ -54,7 +49,7 @@ public class ElementTable {
   }
 
   public Iterable<Element.Transmutation> getTransmutations(Element agent) {
-    List<Element.Transmutation> transmutationList = new ArrayList();
+    List<Element.Transmutation> transmutationList = new ArrayList<Element.Transmutation>();
     for (int i = 0; i < elements.length; i++) {
       if (transmutations[agent.ordinal][i] != null) {
         transmutationList.add(transmutations[agent.ordinal][i]);

@@ -2,8 +2,6 @@ package com.loganh.sandblaster;
 
 import java.util.*;
 
-import android.graphics.Color;
-
 
 public class Element {
 

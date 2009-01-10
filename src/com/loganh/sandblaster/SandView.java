@@ -1,7 +1,5 @@
 package com.loganh.sandblaster;
 
-import java.io.*;
-
 import android.content.Context;
 import android.graphics.Point;
 import android.os.SystemClock;
@@ -188,14 +186,6 @@ public class SandView extends LinearLayout {
 
   public boolean canZoomOut() {
     return scale / ZOOM_FACTOR >= MIN_SCALE;
-  }
-
-  private int scaleX(float x) {
-    return Math.round(sandbox.getWidth() * x / getWidth());
-  }
-
-  private int scaleY(float y) {
-    return Math.round(sandbox.getHeight() - sandbox.getHeight() * y / getHeight() - 1);
   }
 
   @Override

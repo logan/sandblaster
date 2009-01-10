@@ -74,7 +74,6 @@ public class Snapshot implements Comparable<Snapshot> {
     Reader reader = new InputStreamReader(context.openFileInput(name + SNAPSHOT_EXTENSION));
     try {
       sandbox = read(reader, context);
-      this.name = name;
       loaded = true;
       Log.i("loaded from {0}", name);
     } catch (XmlPullParserException ex) {
@@ -129,7 +128,7 @@ public class Snapshot implements Comparable<Snapshot> {
   }
 
   static public Set<Snapshot> getSnapshots(Context context) {
-    Set<Snapshot> snapshots = new TreeSet();
+    Set<Snapshot> snapshots = new TreeSet<Snapshot>();
     for (String filename : context.fileList()) {
       if (filename.endsWith(SNAPSHOT_EXTENSION)) {
         String name = filename.substring(0, filename.length() - SNAPSHOT_EXTENSION.length());
@@ -312,8 +311,8 @@ public class Snapshot implements Comparable<Snapshot> {
     List<Float> weights;
 
     public ElementProductSet() {
-      names = new ArrayList();
-      weights = new ArrayList();
+      names = new ArrayList<String>();
+      weights = new ArrayList<Float>();
     }
 
     public Element.ProductSet resolve(ElementTable table) {
@@ -350,7 +349,7 @@ public class Snapshot implements Comparable<Snapshot> {
 
     public ElementData(Element element) {
       this.element = element;
-      transmutations = new ArrayList();
+      transmutations = new ArrayList<ElementTransmutation>();
     }
   }
 
@@ -382,7 +381,7 @@ public class Snapshot implements Comparable<Snapshot> {
         } else if (parser.getName().equals("default-element-set")) {
           elementTable = loadDefaultElementTable(context);
         } else if (parser.getName().equals("element-set")) {
-          elements = new ArrayList();
+          elements = new ArrayList<ElementData>();
         } else if (parser.getName().equals("element")) {
           String name = parser.getAttributeValue(NS, "name");
           char id = parser.getAttributeValue(NS, "id").charAt(0);
@@ -574,18 +573,14 @@ public class Snapshot implements Comparable<Snapshot> {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-      Snapshot snapshot = getItem(position);
       return new SnapshotView(getContext(), getItem(position));
     }
   }
 
   static private class SnapshotView extends LinearLayout {
 
-    private Snapshot snapshot;
-
     public SnapshotView(Context context, Snapshot snapshot) {
       super(context);
-      this.snapshot = snapshot;
       LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
       inflater.inflate(R.layout.snapshot, this);
       ImageView image = (ImageView) findViewById(R.id.snapshot_thumbnail);

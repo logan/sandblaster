@@ -1,14 +1,8 @@
 package com.loganh.sandblaster;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Random;
-import java.util.Set;
 
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -79,7 +73,7 @@ public class SandBox {
   }
 
   synchronized public void clear() {
-    sources = new HashMap();
+    sources = new HashMap<Point, Element>();
     elements = new Element[width][height];
     ages = new int[width][height];
     leftNeighbors = new int[width][height];
@@ -198,11 +192,9 @@ public class SandBox {
 
     for (int y = 0; y < height; y++) {
       int[][] neighbors = rightNeighbors;
-      int xoffs = -1;
       int start = 0;
       if (random.nextBoolean()) {
         neighbors = leftNeighbors;
-        xoffs = 1;
         start = width - 1;
       }
       int x = -2;

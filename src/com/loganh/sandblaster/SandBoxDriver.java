@@ -1,7 +1,6 @@
 package com.loganh.sandblaster;
 
 import android.os.SystemClock;
-import android.view.SurfaceHolder;
 
 public class SandBoxDriver extends Thread {
 

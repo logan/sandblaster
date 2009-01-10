@@ -1,6 +1,7 @@
 package com.loganh.sandblaster;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -16,7 +17,6 @@ public class PaletteView extends View {
 
   public Element[] elements;
   public int selected;
-  private String[] labels;
   private Point[] labelPositions;
 
   public PaletteView(Context context, AttributeSet attrs) {
@@ -24,7 +24,7 @@ public class PaletteView extends View {
   }
 
   public void setElementTable(ElementTable elementTable) {
-    ArrayList<Element> elementList = new ArrayList();
+    List<Element> elementList = new ArrayList<Element>();
     for (Element element : elementTable.elements) {
       if (element.drawable) {
         elementList.add(element);
@@ -64,7 +64,6 @@ public class PaletteView extends View {
   private void drawLabel(int offset, Canvas canvas, Rect button, Element element) {
     Paint paint = new Paint();
     if (labelPositions[offset] == null) {
-      String capName = element.toString();
       String label = elements[offset].name;
       Rect bounds = new Rect();
       paint.getTextBounds(label, 0, label.length(), bounds);
