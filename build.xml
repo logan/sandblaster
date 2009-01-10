@@ -290,4 +290,14 @@
         </exec>
     </target>
 
+    <target name="test" depends="reinstall">
+        <echo>Running tests on the emulator...</echo>
+        <exec executable="${adb}" failonerror="true">
+            <arg value="shell"/>
+            <arg value="am"/>
+            <arg value="instrument"/>
+            <arg value="-w"/>
+            <arg value="com.loganh.sandblaster/android.test.InstrumentationTestRunner"/>
+        </exec>
+    </target>
 </project>
