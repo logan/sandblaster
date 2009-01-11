@@ -11,7 +11,8 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ZoomControls;
 
-public class SandView extends LinearLayout {
+public class SandView extends LinearLayout
+    implements SandBoxPresenter.PlaybackListener, SandBoxPresenter.LoadListener {
   static final private float ZOOM_FACTOR = 1.2f;
   static final private float MIN_SCALE = 1f;
   static final private float MAX_SCALE = 16f;
@@ -22,9 +23,7 @@ public class SandView extends LinearLayout {
 
   private SurfaceView surface;
   private ZoomControls zoomControls;
-  private SandBox sandbox;
-  private SandBoxDriver driver;
-  private SandBoxRenderer renderer;
+  private SandBoxPresenter presenter;
   private SandBoxRenderer.Camera camera;
   private PaletteView palette;
   private boolean penDown;
@@ -40,13 +39,23 @@ public class SandView extends LinearLayout {
     scale = 1;
     camera = new SandBoxRenderer.Camera(scale) {
       public Point getViewSize() {
-        return new Point(SandView.this.surface.getWidth(), SandView.this.surface.getHeight());
+        return new Point(surface.getWidth(), surface.getHeight());
       }
 
       public Point getObjectSize() {
-        return new Point(SandView.this.sandbox.getWidth(), SandView.this.sandbox.getHeight());
+        return new Point(presenter.getWidth(), presenter.getHeight());
       }
     };
+  }
+
+  public void setSandBoxPresenter(SandBoxPresenter presenter) {
+    this.presenter = presenter;
+    presenter.addPlaybackListener(this);
+    presenter.addLoadListener(this);
+    if (surface != null) {
+      presenter.setView(surface, camera);
+    }
+    palette.setSandBoxPresenter(presenter);
   }
 
   @Override
@@ -54,32 +63,30 @@ public class SandView extends LinearLayout {
     Log.i("Finish inflate");
     surface = (SurfaceView) findViewById(R.id.surface);
     zoomControls = (ZoomControls) findViewById(R.id.zoom);
+    if (presenter != null) {
+      presenter.setView(surface, camera);
+    }
+
     playbackButton = (ImageButton) findViewById(R.id.playback);
     playbackButton.setImageResource(android.R.drawable.ic_media_play);
-    //playbackButton.setEnabled(false);
+    playbackButton.setEnabled(false);
     playListener = new OnClickListener() {
       public void onClick(View v) {
         Log.i("click on play");
-        //playbackButton.setEnabled(false);
-        if (sandbox != null) {
-          ((SandActivity) getContext()).startDriver();
-        }
+        playbackButton.setEnabled(false);
+        presenter.unpause();
       }
     };
 
     pauseListener = new OnClickListener() {
       public void onClick(View v) {
         Log.i("click on pause");
-        //playbackButton.setEnabled(false);
-        if (sandbox != null) {
-          ((SandActivity) getContext()).stopDriver();
-        }
+        playbackButton.setEnabled(false);
+        presenter.pause();
       }
     };
 
     playbackButton.setOnClickListener(playListener);
-
-    renderer = new SandBoxRenderer(surface, camera);
 
     zoomControls.setOnZoomInClickListener(new OnClickListener() {
           public void onClick(View v) {
@@ -95,9 +102,7 @@ public class SandView extends LinearLayout {
 
   @Override
   protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-    if (sandbox != null) {
-      zoomToFit();
-    }
+    zoomToFit();
   }
 
   public void onStart() {
@@ -110,43 +115,15 @@ public class SandView extends LinearLayout {
     playbackButton.setImageResource(android.R.drawable.ic_media_play);
     playbackButton.setEnabled(true);
     playbackButton.setOnClickListener(playListener);
-    if (sandbox != null) {
-      Log.i("rendering");
-      renderer.draw();
-    }
   }
 
-  public SandBoxRenderer getRenderer() {
-    return renderer;
+  public void onLoad() {
+    playbackButton.setEnabled(true);
+    zoomToFit();
   }
 
   public void setPaletteView(PaletteView palette) {
     this.palette = palette;
-  }
-
-  public void setSandBox(SandBox sandbox) {
-    this.sandbox = sandbox;
-    renderer.setSandBox(sandbox);
-    playbackButton.setEnabled(true);
-    Log.i("setSandBox calling zoomToFit");
-    zoomToFit();
-    Log.i("zoomed to {0}", scale);
-  }
-
-  public void setSandBoxDriver(SandBoxDriver driver) {
-    this.driver = driver;
-  }
-
-  private void driverSleep() {
-    if (driver != null) {
-      driver.sleep();
-    }
-  }
-
-  private void driverWake() {
-    if (driver != null) {
-      driver.wake();
-    }
   }
 
   public void zoomIn() {
@@ -162,22 +139,20 @@ public class SandView extends LinearLayout {
   }
 
   public void zoomToFit() {
-    setScale(Math.min(getWidth() / (float) sandbox.getWidth(), getHeight() / (float) sandbox.getHeight()));
+    setScale(Math.min(getWidth() / (float) presenter.getWidth(), getHeight() / (float) presenter.getHeight()));
     camera.recenter();
   }
 
   private void setScale(float scale) {
-    driverSleep();
+    presenter.pauseDriver();
     Log.i("setting scale from {0} to {1}", this.scale, scale);
     this.scale = scale;
     camera.setScale(scale);
     zoomControls.setIsZoomInEnabled(canZoomIn());
     zoomControls.setIsZoomOutEnabled(canZoomOut());
-    if (sandbox != null) {
-      Log.i("rendering");
-      renderer.draw();
-    }
-    driverWake();
+    Log.i("rendering");
+    presenter.draw();
+    presenter.resumeDriver();
   }
 
   public boolean canZoomIn() {
@@ -190,18 +165,15 @@ public class SandView extends LinearLayout {
 
   @Override
   public boolean onTouchEvent(MotionEvent event) {
-    if (sandbox == null) {
-      return false;
-    }
     Point eventPoint = new Point((int) event.getX(), (int) event.getY());
     if (event.getAction() == MotionEvent.ACTION_DOWN) {
       // TODO: pressure sensitivity
       penDown = true;
       penDownTime = SystemClock.uptimeMillis();
       lastPen = camera.viewToObject(eventPoint);
-      driverSleep();
-      sandbox.addSource(palette.getElement(), lastPen.x, lastPen.y);
-      driverWake();
+      presenter.pauseDriver();
+      presenter.addSource(palette.getElement(), lastPen.x, lastPen.y);
+      presenter.resumeDriver();
       return true;
     } else if (penDown && event.getAction() == MotionEvent.ACTION_MOVE) {
       Point newPen = camera.viewToObject(eventPoint);
@@ -209,19 +181,19 @@ public class SandView extends LinearLayout {
         return true;
       }
       penDownTime = SystemClock.uptimeMillis();
-      driverSleep();
-      sandbox.removeSource(lastPen.x, lastPen.y);
-      sandbox.line(palette.getElement(), lastPen.x, lastPen.y, newPen.x, newPen.y);
+      presenter.pauseDriver();
+      presenter.removeSource(lastPen.x, lastPen.y);
+      presenter.line(palette.getElement(), lastPen.x, lastPen.y, newPen.x, newPen.y);
       lastPen = newPen;
-      sandbox.addSource(palette.getElement(), lastPen.x, lastPen.y);
-      renderer.draw();
-      driverWake();
+      presenter.addSource(palette.getElement(), lastPen.x, lastPen.y);
+      presenter.draw();
+      presenter.resumeDriver();
       return true;
     } else if (penDown && event.getAction() == MotionEvent.ACTION_UP) {
       if (SystemClock.uptimeMillis() - penDownTime < PEN_STICK_THRESHOLD) {
-        driverSleep();
-        sandbox.removeSource(lastPen.x, lastPen.y);
-        driverWake();
+        presenter.pauseDriver();
+        presenter.removeSource(lastPen.x, lastPen.y);
+        presenter.resumeDriver();
       }
       penDown = false;
       return true;
@@ -237,4 +209,5 @@ public class SandView extends LinearLayout {
     }
     return false;
   }
+
 }

@@ -41,8 +41,7 @@ public class SandActivity extends Activity {
   private SandView view;
   private PaletteView palette;
 
-  private SandBox sandbox;
-  private SandBoxDriver driver;
+  private SandBoxPresenter presenter;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -51,51 +50,35 @@ public class SandActivity extends Activity {
     setContentView(R.layout.sand);
     view = (SandView) findViewById(R.id.sand);
     palette = (PaletteView) findViewById(R.id.palette);
-    assert(view != null);
-    assert(palette != null);
-    view.setPaletteView(palette);
-    initializeSandBox();
-  }
-
-  private void initializeSandBox() {
-    try {
-      Snapshot snapshot = new Snapshot("Autosave", this);
-      if (snapshot.sandbox != null) {
-        setSandBox(snapshot.sandbox);
-        return;
-      } else {
-        Log.e("Error parsing Autosave");
-      }
-    } catch (IOException ex) {
-      Log.e("Unable to load Autosave", ex);
+    presenter = new SandBoxPresenterImpl(getAssets(), this, FPS);
+    if (!presenter.loadSandBox("Autosave")) {
+      presenter.newSandBox();
     }
-    setSandBox(loadNewSandBox());
-  }
+    view.setPaletteView(palette);
+    view.setSandBoxPresenter(presenter);
 
-  public void setSandBox(SandBox sandbox) {
-    stopDriver();
-    this.sandbox = sandbox;
-    view.setSandBox(sandbox);
-    palette.setElementTable(sandbox.elementTable);
+    presenter.addPlaybackListener(new SandBoxPresenter.PlaybackListener() {
+          public void onStart() {
+            onSandBoxStart();
+          }
+
+          public void onStop() {
+            onSandBoxStop();
+          }
+        });
   }
 
   @Override
   public void onResume() {
     super.onResume();
     Log.i("resume");
-    Log.i("playing? {0}", sandbox.playing);
-    if (sandbox != null && sandbox.playing) {
-      startDriver();
-    } else {
-      stopDriver();
-    }
+    presenter.start();
   }
 
   @Override
   public void onPause() {
     super.onPause();
-    Log.i("pause");
-    stopDriver();
+    presenter.stop();
   }
 
   @Override
@@ -159,31 +142,19 @@ public class SandActivity extends Activity {
       case LOAD_SNAPSHOT_REQUEST:
         if (resultCode == Snapshot.LOAD_SNAPSHOT_RESULT) {
           String name = data.getData().getSchemeSpecificPart();
-          try {
-            Log.i("Loading {0}", name);
-            Snapshot snapshot = new Snapshot(name, this);
-            if (snapshot.sandbox == null) {
-              Log.i("Bad load, attempting 1.5 mode");
-              snapshot.sandbox = loadNewSandBox();
-              Snapshot.read_1_5(snapshot.sandbox, name, this);
-            }
-            setSandBox(snapshot.sandbox);
-            Log.i("loaded {0}", snapshot.name);
-          } catch (IOException ex) {
-            Log.e("failed to load " + name, ex);
-          } catch (XmlPullParserException ex) {
-            Log.e("failed to parse " + name, ex);
+          if (!presenter.loadSandBox(name)) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setCancelable(true);
+            builder.setTitle(R.string.load_error_title);
+            builder.setMessage(R.string.load_error_message);
+            builder.show();
           }
         }
         break;
       case SAVE_SNAPSHOT_REQUEST:
         if (resultCode == Snapshot.SAVE_SNAPSHOT_RESULT) {
           String name = data.getData().getSchemeSpecificPart();
-          Snapshot snapshot = new Snapshot(sandbox);
-          snapshot.name = name;
-          try {
-            snapshot.save(this);
-          } catch (IOException ex) {
+          if (!presenter.saveSandBox(name)) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setCancelable(true);
             builder.setTitle(R.string.save_error_title);
@@ -246,53 +217,18 @@ public class SandActivity extends Activity {
     startActivityForResult(intent, SAVE_SNAPSHOT_REQUEST);
   }
 
-  public void startDriver() {
-    stopDriver();
-    if (sandbox != null) {
-      Log.i("creating new driver");
-      driver = new SandBoxDriver(sandbox, view.getRenderer(), FPS);
-      driver.start();
-      view.setSandBoxDriver(driver);
-      view.onStart();
-      sandbox.playing = true;
-      Log.i("driver started");
-    }
+  public void onSandBoxStart() {
   }
 
-  public void stopDriver() {
-    if (driver != null) {
-      Log.i("waiting for driver to shut down...");
-      driver.shutdown();
-      view.onStop();
-    }
-    Log.i("driver shut down");
-    driver = null;
-    if (sandbox != null) {
-      sandbox.playing = false;
-      Snapshot snapshot = new Snapshot(sandbox);
-      snapshot.name = "Autosave";
-      try {
-        snapshot.save(this);
-      } catch (IOException ex) {
-        Log.e("Failed to autosave snapshot", ex);
-      }
-    }
+  public void onSandBoxStop() {
+    presenter.saveSandBox("Autosave");
   }
 
   private void clear() {
-    setSandBox(loadNewSandBox());
-    startDriver();
+    presenter.newSandBox();
   }
 
   private void installDemo() {
-    try {
-      setSandBox(Snapshot.read(new InputStreamReader(getAssets().open("snapshot_demo.xml")), this));
-      setSandBox(sandbox);
-      startDriver();
-    } catch (IOException ex) {
-      Log.e("failed to load demo", ex);
-    } catch (XmlPullParserException ex) {
-      Log.e("failed to parse demo", ex);
-    }
+    presenter.loadSandBoxFromAsset("snapshot_demo.xml");
   }
 }

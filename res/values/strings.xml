@@ -18,4 +18,7 @@
   <string name="save_button">Save</string>
   <string name="save_error_title">Save Error</string>
   <string name="save_error_message">Unable to save snapshot to {0}</string>
+
+  <string name="load_error_title">Load Error</string>
+  <string name="load_error_message">Unable to load snapshot {0}</string>
 </resources>

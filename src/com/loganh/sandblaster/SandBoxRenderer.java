@@ -63,26 +63,35 @@ public class SandBoxRenderer implements SurfaceHolder.Callback {
   private FrameRateCounter fpsCounter;
   private int lastFpsRight;
 
-  public SandBoxRenderer(SurfaceView surfaceView, Camera camera) {
-    this.surfaceView = surfaceView;
-    this.camera = camera;
+  public SandBoxRenderer() {
     fpsCounter = new FrameRateCounter();
+  }
+
+  public void setSurfaceView(SurfaceView surfaceView) {
+    this.surfaceView = surfaceView;
     surfaceView.getHolder().addCallback(this);
+  }
+
+  public void setCamera(Camera camera) {
+    this.camera = camera;
   }
 
   public void setSandBox(SandBox sandbox) {
     this.sandbox = sandbox;
   }
 
-  public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) { }
-  public void surfaceDestroyed(SurfaceHolder holder) { }
+  public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+  }
+
+  public void surfaceDestroyed(SurfaceHolder holder) {
+  }
 
   public void surfaceCreated(SurfaceHolder holder) {
     draw();
   }
 
   public void draw() {
-    if (sandbox == null || surfaceView.getHolder() == null) {
+    if (sandbox == null || surfaceView == null || surfaceView.getHolder() == null) {
       return;
     }
     Canvas canvas = null;

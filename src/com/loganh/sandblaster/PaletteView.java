@@ -13,14 +13,24 @@ import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 
-public class PaletteView extends View {
+public class PaletteView extends View implements SandBoxPresenter.LoadListener {
 
   public Element[] elements;
   public int selected;
   private Point[] labelPositions;
+  private SandBoxPresenter presenter;
 
   public PaletteView(Context context, AttributeSet attrs) {
     super(context, attrs);
+  }
+
+  public void setSandBoxPresenter(SandBoxPresenter presenter) {
+    this.presenter = presenter;
+    presenter.addLoadListener(this);
+  }
+
+  public void onLoad() {
+    setElementTable(presenter.getElementTable());
   }
 
   public void setElementTable(ElementTable elementTable) {

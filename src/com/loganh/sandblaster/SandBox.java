@@ -330,14 +330,22 @@ public class SandBox implements Recordable {
     return lastSet[x][y] != iteration && elements[x][y].mobile;
   }
 
-  public String pack() throws IOException {
+  public byte[] packToBytes() throws IOException {
     ByteArrayOutputStream stream = new ByteArrayOutputStream();
     write(new DataOutputStream(stream));
-    return Base64.encode(stream.toByteArray());
+    return stream.toByteArray();
+  }
+
+  public String pack() throws IOException {
+    return Base64.encode(packToBytes());
   }
 
   static public SandBox unpack(String packData) throws IOException {
-    ByteArrayInputStream stream = new ByteArrayInputStream(Base64.decode(packData));
+    return unpack(Base64.decode(packData));
+  }
+
+  static public SandBox unpack(byte[] bytes) throws IOException {
+    ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
     return read(new DataInputStream(stream));
   }
 
