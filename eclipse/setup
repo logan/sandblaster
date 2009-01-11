@@ -1,0 +1,15 @@
+#!/bin/sh
+
+SRC="$PWD"
+
+if [ ! -e "$SRC/eclipse/project.template" ]; then
+  echo "Error: eclipse/project.template not found"
+  echo "Script should be run from sandbox directory."
+  exit 1
+fi
+
+for n in project classpath; do
+  sed -e "s@SRC@$SRC@g" "$SRC/eclipse/$n.template" > "$SRC/.$n"
+  echo "Created .$n"
+done
+

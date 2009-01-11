@@ -1,0 +1,54 @@
+ANT USERS
+
+Make sure JAVA_HOME is set correctly. You should also have the tools
+directory of the Android SDK in your PATH.
+
+Build a debug APK: ant
+Build and install a debug APK to an emulator or device: ant reinstall
+Build and run unit tests on an emulator or device: ant test
+
+
+ECLIPSE USERS
+
+You should have the Android plugins installed in Eclipse already:
+
+    http://code.google.com/android/intro/installing.html
+
+There is a script in the eclipse subdirectory of this project that will
+generate a project configuration for you to import into a new Eclipse project.
+Just follow these steps:
+
+1. Run eclipse/setup from this directory. This will create .project and
+   .classpath files for importing into a new Eclipse project.
+   Note: If this script doesn't work for you (e.g., you are in Windows), just
+   copy eclipse/classpath.template to .classpath and eclipse/project.template
+   to .project. Then, edit .project and do a global search and replace of
+   "SRC" to the full path to this file.
+
+2. In Eclipse, under the File menu, select "Import..."
+
+3. Under General, select "Existing Projects into Workspace" and click "Next >".
+
+4. Click the "Browse..." button next to "Select root directory."
+
+5. Select the directory containing this file. The "SandActivity" project
+   should appear in the list of projects now.
+
+6. Check the "Copy projects into workspace" checkbox.
+
+7. Click "Finish."
+
+At this point the project should be imported. To launch an emulator running
+the application:
+
+1. Under Run, select "Run configurations..."
+
+2. Double-click "Android Application".
+
+3. Under "Project", click "Browse..." and choose the "SandActivity" project
+   that you've just created.
+
+4. Give the run configuration a name if you like.
+
+5. Apply your changes, and click "Run" to start the emulator up.
+
