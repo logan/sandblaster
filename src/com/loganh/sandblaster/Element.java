@@ -89,7 +89,7 @@ public class Element implements Recordable {
         if ((products[i] == null) != (other.products[i] == null)) {
           return false;
         }
-        if (products[i] != null && !products[i].equals(other.products[i])) {
+        if (products[i] != null && products[i].ordinal != other.products[i].ordinal) {
           return false;
         }
         if (weights[i] != other.weights[i]) {

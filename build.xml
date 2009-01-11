@@ -308,7 +308,21 @@
     </target>
 
     <target name="test" depends="reinstall">
-        <echo>Running tests on the emulator...</echo>
+        <echo>Running unit tests on the emulator...</echo>
+        <exec executable="${adb}" failonerror="true">
+            <arg value="shell"/>
+            <arg value="am"/>
+            <arg value="instrument"/>
+            <arg value="-w"/>
+            <arg value="-e"/>
+            <arg value="unit"/>
+            <arg value="true"/>
+            <arg value="com.loganh.sandblaster/android.test.InstrumentationTestRunner"/>
+        </exec>
+    </target>
+
+    <target name="alltest" depends="reinstall">
+        <echo>Running all tests on the emulator, this may take a minute...</echo>
         <exec executable="${adb}" failonerror="true">
             <arg value="shell"/>
             <arg value="am"/>

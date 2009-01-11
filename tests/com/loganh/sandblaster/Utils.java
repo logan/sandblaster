@@ -40,15 +40,18 @@ abstract public class Utils {
   }
 
   static public ElementTable getTestElementTable() {
+    Element wall = new Element("Wall", 'W', 0xeeeeee, true, false, 0);
+    Element water = new Element("Water", 'A', 0x0000ff, true, true, 0.8f);
     Element fire = new Element("Fire", 'F', 0xff0000, true, true, -1, 0.5f, 3);
     Element smoke = new Element("Smoke", 'S', 0xaaaaaa, false, true, -0.5f, 0.1f, 10);
     Element plant = new Element("Plant", 'P', 0x00ff00, true, false, 0, 0.02f, 20);
-    ElementTable elementTable = new ElementTable(new Element[]{fire, smoke, plant});
+    ElementTable elementTable = new ElementTable(new Element[]{wall, water, fire, smoke, plant});
     fire.decayProducts = new Element.ProductSet(new Element[]{smoke, null}, new float[]{1, 5});
     plant.decayProducts = new Element.ProductSet(new Element[]{fire, null}, new float[]{1, 99});
     Element.ProductSet plantBurn = new Element.ProductSet(new Element[]{smoke}, new float[]{1});
-    Element.Transmutation transmutation = new Element.Transmutation(plant, 0.8f, plantBurn);
-    elementTable.addTransmutation(fire, transmutation);
+    Element.ProductSet plantGrow = new Element.ProductSet(new Element[]{plant}, new float[]{1});
+    elementTable.addTransmutation(fire, new Element.Transmutation(plant, 0.8f, plantBurn));
+    elementTable.addTransmutation(plant, new Element.Transmutation(water, 0.3f, plantGrow));
     return elementTable;
   }
 
