@@ -251,25 +251,26 @@ public class SandBox implements Recordable {
         }
 
         // Horizontal movement.
-        //int nx = x + xoffs;
-        int nx = x + (random.nextBoolean() ? 1 : -1); 
-        if (e.density > 0) {
-          // Slide only if blocked below.
-          if (y - 1 >= 0 && (!isMobile(x, y - 1) || e.density <= effectiveDensity(x, y - 1))) {
-            float nd = effectiveDensity(nx, y);
-            if (isMobile(nx, y) && e.density > nd) {
-              if (nd == 0 || random.nextFloat() < e.density - nd) {
-                swap(x, y, nx, y);
+        if (random.nextFloat() < e.viscosity) {
+          int nx = x + (random.nextBoolean() ? 1 : -1); 
+          if (e.density > 0) {
+            // Slide only if blocked below.
+            if (y - 1 >= 0 && (!isMobile(x, y - 1) || e.density <= effectiveDensity(x, y - 1))) {
+              float nd = effectiveDensity(nx, y);
+              if (isMobile(nx, y) && e.density > nd) {
+                if (nd == 0 || random.nextFloat() < e.density - nd) {
+                  swap(x, y, nx, y);
+                }
               }
             }
-          }
-        } else if (e.density < 0) {
-          // Slide only if blocked above.
-          if (y + 1 < height && (!isMobile(x, y + 1) || e.density >= effectiveDensity(x, y + 1))) {
-            float nd = effectiveDensity(nx, y);
-            if (isMobile(nx, y) && e.density < nd) {
-              if (nd == 0 || random.nextFloat() < nd - e.density) {
-                swap(x, y, nx, y);
+          } else if (e.density < 0) {
+            // Slide only if blocked above.
+            if (y + 1 < height && (!isMobile(x, y + 1) || e.density >= effectiveDensity(x, y + 1))) {
+              float nd = effectiveDensity(nx, y);
+              if (isMobile(nx, y) && e.density < nd) {
+                if (nd == 0 || random.nextFloat() < nd - e.density) {
+                  swap(x, y, nx, y);
+                }
               }
             }
           }

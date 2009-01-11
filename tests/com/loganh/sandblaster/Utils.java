@@ -40,11 +40,11 @@ abstract public class Utils {
   }
 
   static public ElementTable getTestElementTable() {
-    Element wall = new Element("Wall", 'W', 0xeeeeee, true, false, 0);
-    Element water = new Element("Water", 'A', 0x0000ff, true, true, 0.8f);
-    Element fire = new Element("Fire", 'F', 0xff0000, true, true, -1, 0.5f, 3);
-    Element smoke = new Element("Smoke", 'S', 0xaaaaaa, false, true, -0.5f, 0.1f, 10);
-    Element plant = new Element("Plant", 'P', 0x00ff00, true, false, 0, 0.02f, 20);
+    Element wall = new Element("Wall", 'W', 0xeeeeee, true, false, 0, 1);
+    Element water = new Element("Water", 'A', 0x0000ff, true, true, 0.8f, 1);
+    Element fire = new Element("Fire", 'F', 0xff0000, true, true, -1, 0.5f, 3, 1);
+    Element smoke = new Element("Smoke", 'S', 0xaaaaaa, false, true, -0.5f, 0.1f, 10, 1);
+    Element plant = new Element("Plant", 'P', 0x00ff00, true, false, 0, 0.02f, 20, 1);
     ElementTable elementTable = new ElementTable(new Element[]{wall, water, fire, smoke, plant});
     fire.decayProducts = new Element.ProductSet(new Element[]{smoke, null}, new float[]{1, 5});
     plant.decayProducts = new Element.ProductSet(new Element[]{fire, null}, new float[]{1, 99});

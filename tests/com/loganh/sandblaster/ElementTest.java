@@ -7,7 +7,7 @@ import junit.framework.TestCase;
 public class ElementTest extends TestCase {
 
   public void testPacking() throws IOException {
-    Element element = new Element("Test", 'T', 0x334455, false, false, 1);
+    Element element = new Element("Test", 'T', 0x334455, false, false, 1, 2);
     assertEquals(element, Utils.copy(element));
 
     element.drawable = true;

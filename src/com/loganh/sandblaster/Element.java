@@ -160,17 +160,18 @@ public class Element implements Recordable {
   public boolean drawable;
   public boolean mobile;
   public float density;
+  public float viscosity;
   public float decayProbability;
   public int lifetime;
   public ProductSet decayProducts;
   public int ordinal;
   public int transmutationCount;
 
-  public Element(String name, char id, int color, boolean drawable, boolean mobile, float density) {
-    this(name, id, color, drawable, mobile, density, 0, 0);
+  public Element(String name, char id, int color, boolean drawable, boolean mobile, float density, float viscosity) {
+    this(name, id, color, drawable, mobile, density, viscosity, 0, 0);
   }
 
-  public Element(String name, char id, int color, boolean drawable, boolean mobile, float density,
+  public Element(String name, char id, int color, boolean drawable, boolean mobile, float density, float viscosity,
                  float decayProbability, int lifetime) {
     this.name = name;
     this.id = id;
@@ -178,6 +179,7 @@ public class Element implements Recordable {
     this.drawable = drawable;
     this.mobile = mobile;
     this.density = density;
+    this.viscosity = viscosity;
     this.decayProbability = decayProbability;
     this.lifetime = lifetime;
   }
@@ -189,6 +191,7 @@ public class Element implements Recordable {
     out.writeBoolean(drawable);
     out.writeBoolean(mobile);
     out.writeFloat(density);
+    out.writeFloat(viscosity);
     out.writeFloat(decayProbability);
     out.writeInt(lifetime);
   }
@@ -200,9 +203,10 @@ public class Element implements Recordable {
     boolean drawable = in.readBoolean();
     boolean mobile = in.readBoolean();
     float density = in.readFloat();
+    float viscosity = in.readFloat();
     float decayProbability = in.readFloat();
     int lifetime = in.readInt();
-    return new Element(name, id, color, drawable, mobile, density, decayProbability, lifetime);
+    return new Element(name, id, color, drawable, mobile, density, viscosity, decayProbability, lifetime);
   }
 
   @Override
@@ -210,8 +214,8 @@ public class Element implements Recordable {
     Element other = (Element) object;
     if (!name.equals(other.name) || id != other.id || color != other.color
         || drawable != other.drawable || mobile != other.mobile
-        || density != other.density || decayProbability != other.decayProbability
-        || lifetime != other.lifetime) {
+        || density != other.density || viscosity != other.viscosity
+        || decayProbability != other.decayProbability || lifetime != other.lifetime) {
       return false;
     }
     if ((decayProducts == null) != (other.decayProducts == null)) {

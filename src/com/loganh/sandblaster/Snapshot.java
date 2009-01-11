@@ -217,7 +217,8 @@ public class Snapshot implements Comparable<Snapshot> {
           .attribute(NS, "color", colorToString(element.color))
           .attribute(NS, "drawable", element.drawable ? "true" : "false")
           .attribute(NS, "mobile", element.mobile ? "true" : "false")
-          .attribute(NS, "density", Float.toString(element.density));
+          .attribute(NS, "density", Float.toString(element.density))
+          .attribute(NS, "viscosity", Float.toString(element.viscosity));
       if (element.decayProbability > 0) {
         serializer.startTag(NS, "element-decay")
             .attribute(NS, "probability", Float.toString(element.decayProbability))
@@ -407,7 +408,8 @@ public class Snapshot implements Comparable<Snapshot> {
           boolean drawable = getBooleanAttribute(parser, "drawable", false);
           boolean mobile = getBooleanAttribute(parser, "mobile", true);
           float density = getFloatAttribute(parser, "density", 0);
-          currentElement = new ElementData(new Element(name, id, color, drawable, mobile, density));
+          float viscosity = getFloatAttribute(parser, "viscosity", 1);
+          currentElement = new ElementData(new Element(name, id, color, drawable, mobile, density, viscosity));
           elements.add(currentElement);
         } else if (parser.getName().equals("element-transform")) {
           String subject = parser.getAttributeValue(NS, "subject");
