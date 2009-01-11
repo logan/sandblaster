@@ -207,6 +207,8 @@ public class Snapshot implements Comparable<Snapshot> {
         .attribute(NS, "height", Integer.toString(h))
         .attribute(NS, "paused", sandbox.playing ? "false" : "true");
 
+    serializer.startTag(NS, "packed-sandbox").text(sandbox.pack()).endTag(NS, "packed-sandbox");
+
     serializer.startTag(NS, "element-set");
     for (Element element : sandbox.elementTable.elements) {
       serializer.startTag(NS, "element")
@@ -266,6 +268,20 @@ public class Snapshot implements Comparable<Snapshot> {
     }
 
     serializer.endDocument();
+
+    Log.i("testing pack/unpack");
+    SandBox copy;
+    try {
+      copy = SandBox.unpack(sandbox.pack());
+    } catch (IOException ex) {
+      Log.e("error packing or unpacking sandbox", ex);
+      return;
+    }
+    if (sandbox.equals(copy)) {
+      Log.i("copy worked!");
+    } else {
+      Log.e("copy failed");
+    }
   }
 
   static private ElementTable loadDefaultElementTable(Context context) throws IOException, XmlPullParserException {
@@ -355,6 +371,7 @@ public class Snapshot implements Comparable<Snapshot> {
 
   static public SandBox read(Reader reader, Context context) throws IOException, XmlPullParserException {
     SandBox sandbox = null;
+    SandBox packbox = null;
     XmlPullParser parser = XmlPullParserFactory.newInstance().newPullParser();
     parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
     parser.setInput(reader);
@@ -362,6 +379,7 @@ public class Snapshot implements Comparable<Snapshot> {
     int sequenceY = -1;
     int eventType = parser.getEventType();
     boolean inSequence = false;
+    boolean inPack = false;
     List<ElementData> elements = null;
     ElementData currentElement = null;
     ElementProductSet currentProductSet = null;
@@ -428,6 +446,8 @@ public class Snapshot implements Comparable<Snapshot> {
           inSequence = true;
           sequenceX = Integer.parseInt(parser.getAttributeValue(null, "x"));
           sequenceY = Integer.parseInt(parser.getAttributeValue(null, "y"));
+        } else if (parser.getName().equals("packed-sandbox")) {
+          inPack = true;
         }
       } else if (eventType == XmlPullParser.END_TAG) {
         if (parser.getName().equals("element-set")) {
@@ -450,12 +470,20 @@ public class Snapshot implements Comparable<Snapshot> {
           currentProductSet = null;
         } else if (parser.getName().equals("particle-sequence")) {
           inSequence = false;
+        } else if (parser.getName().equals("packed-sandbox")) {
+          inPack = false;
         }
       } else if (eventType == XmlPullParser.TEXT) {
         if (inSequence) {
           String pack = parser.getText().trim();
           for (int i = 0; i < pack.length(); i++) {
             sandbox.setParticle(sequenceX + i, sequenceY, elementTable.resolve(pack.charAt(i)));
+          }
+        } else if (inPack) {
+          try {
+            packbox = SandBox.unpack(parser.getText());
+          } catch (IOException ex) {
+            Log.e("error unpacking sandbox", ex);
           }
         }
       }

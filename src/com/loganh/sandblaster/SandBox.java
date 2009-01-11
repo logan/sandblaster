@@ -1,6 +1,9 @@
 package com.loganh.sandblaster;
 
+import java.io.*;
+
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Random;
 
@@ -8,10 +11,11 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Point;
 
-public class SandBox {
+public class SandBox implements Recordable {
 
   public final static int DEFAULT_WIDTH = 120;
   public final static int DEFAULT_HEIGHT = 160;
+  public final static float SERIALIZATION_VERSION = 1.6f;
 
   // Particles.
 
@@ -50,10 +54,10 @@ public class SandBox {
   public boolean playing;
 
   // Keep track of which iteration certain events occurred in for each particle.
-  private int iteration;
-  private int[][] lastSet;
-  private int[][] lastChange;
-  private int[][] lastFloated;
+  int iteration;
+  int[][] lastSet;
+  int[][] lastChange;
+  int[][] lastFloated;
 
   private Random random;
 
@@ -105,6 +109,10 @@ public class SandBox {
   }
 
   synchronized public void addSource(Element element, int x, int y) {
+    if (element == null) {
+      removeSource(x, y);
+      return;
+    }
     if (x >= 0 && y >= 0 && x < width && y < height) {
       sources.put(new Point(x, y), element);
     }
@@ -319,5 +327,136 @@ public class SandBox {
      return true;
     }
     return lastSet[x][y] != iteration && elements[x][y].mobile;
+  }
+
+  public String pack() throws IOException {
+    ByteArrayOutputStream stream = new ByteArrayOutputStream();
+    write(new DataOutputStream(stream));
+    return Base64.encode(stream.toByteArray());
+  }
+
+  static public SandBox unpack(String packData) throws IOException {
+    ByteArrayInputStream stream = new ByteArrayInputStream(Base64.decode(packData));
+    return read(new DataInputStream(stream));
+  }
+
+  synchronized public void write(DataOutputStream stream) throws IOException {
+    stream.writeFloat(SERIALIZATION_VERSION);
+    elementTable.write(stream);
+    stream.writeShort(width);
+    stream.writeShort(height);
+    stream.writeInt(iteration);
+
+    stream.writeInt(sources.size());
+    for (Source source : getSources()) {
+      if (source.element != null) {
+        stream.writeShort(source.x);
+        stream.writeShort(source.y);
+        stream.writeByte(source.element.ordinal);
+      }
+    }
+
+    for (int y = 0; y < height; y++) {
+      int start;
+      if (elements[0][y] == null) {
+        if (rightNeighbors[0][y] < 0) {
+          stream.writeShort(-1);
+          continue;
+        }
+        start = rightNeighbors[0][y];
+      } else {
+        start = 0;
+      }
+      stream.writeShort(start);
+      for (int x = start; x >= 0 && x < width; x = rightNeighbors[x][y]) {
+        if (elements[x][y] == null) {
+          stream.writeByte((byte) -1);
+        } else {
+          stream.writeByte((byte) elements[x][y].ordinal);
+          stream.writeShort((short) ages[x][y]);
+          stream.writeShort((short) (lastSet[x][y] - iteration));
+          stream.writeShort((short) (lastChange[x][y] - iteration));
+          stream.writeShort((short) (lastFloated[x][y] - iteration));
+        }
+        stream.writeShort((short) (rightNeighbors[x][y]));
+      }
+    }
+  }
+
+  static public SandBox read(DataInputStream stream) throws IOException {
+    if (stream.readFloat() != SERIALIZATION_VERSION) {
+      throw new IOException();
+    }
+
+    ElementTable elementTable = ElementTable.read(stream);
+    int width = stream.readShort();
+    int height = stream.readShort();
+    SandBox sandbox = new SandBox(width, height);
+    sandbox.elementTable = elementTable;
+    sandbox.iteration = stream.readInt();
+
+    int nsources = stream.readInt();
+    for (int i = 0; i < nsources; i++) {
+      int x = stream.readShort();
+      int y = stream.readShort();
+      Element element = elementTable.resolve(stream.readByte());
+      sandbox.addSource(element, x, y);
+    }
+
+    for (int y = 0; y < height; y++) {
+      int x = stream.readShort();
+      while (x >= 0 && x < width) {
+        Element e = elementTable.resolve(stream.readByte());
+        if (e != null) {
+          sandbox.setParticle(x, y, e);
+          sandbox.ages[x][y] = stream.readShort();
+          sandbox.lastSet[x][y] = sandbox.iteration + stream.readShort();
+          sandbox.lastChange[x][y] = sandbox.iteration + stream.readShort();
+          sandbox.lastFloated[x][y] = sandbox.iteration + stream.readShort();
+        }
+        x = stream.readShort();
+      }
+    }
+    return sandbox;
+  }
+
+  @Override
+  public boolean equals(Object object) {
+    if (!(object instanceof SandBox)) {
+      return false;
+    }
+    SandBox other = (SandBox) object;
+    if (width != other.width || height != other.height || !elementTable.equals(other.elementTable)
+        || iteration != other.iteration || sources.size() != other.sources.size()) {
+      Log.i("details mismatch");
+      return false;
+    }
+    if (!sources.equals(other.sources)) {
+      Log.i("sources mismatch");
+      return false;
+    }
+    for (int y = 0; y < height; y++) {
+      for (int x = 0; x < width; x++) {
+        if (ages[x][y] != other.ages[x][y] || lastSet[x][y] != other.lastSet[x][y]
+            || lastChange[x][y] != other.lastChange[x][y]
+            || lastFloated[x][y] != other.lastFloated[x][y]) {
+          Log.i("particle state mismatch at {0}, {1}", x, y);
+          Log.i(" ages: {0} vs. {1}", ages[x][y], other.ages[x][y]);
+          Log.i(" lastSet: {0} vs. {1}", lastSet[x][y], other.lastSet[x][y]);
+          Log.i(" lastChange: {0} vs. {1}", lastChange[x][y], other.lastChange[x][y]);
+          Log.i(" lastFloated: {0} vs. {1}", lastFloated[x][y], other.lastFloated[x][y]);
+          return false;
+        }
+        if ((elements[x][y] == null) != (other.elements[x][y] == null)) {
+          Log.i("particle presence mismatch at {0}, {1}", x, y);
+          return false;
+        }
+        if (elements[x][y] != null && !elements[x][y].equals(other.elements[x][y])) {
+          Log.i("particle element mismatch at {0}, {1}", x, y);
+          return false;
+        }
+      }
+    }
+    return true;
   }
 }
