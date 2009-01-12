@@ -13,6 +13,7 @@ public class SandBoxTest extends TestCase {
     assertEquals(sandbox, Utils.copy(sandbox));
 
     // Add some sources.
+    Element wall = sandbox.elementTable.resolve("Wall");
     Element fire = sandbox.elementTable.resolve("Fire");
     Element plant = sandbox.elementTable.resolve("Plant");
     Element smoke = sandbox.elementTable.resolve("Smoke");
@@ -29,6 +30,7 @@ public class SandBoxTest extends TestCase {
     sandbox.line(plant, 99, 0, 0, 99);
     assertEquals(sandbox, Utils.copy(sandbox));
 
+    sandbox.line(wall, 0, 0, 50, 50);
     sandbox.ages[20][20] = 10;
     sandbox.lastSet[30][30] = 100;
     sandbox.lastChange[40][40] = 200;

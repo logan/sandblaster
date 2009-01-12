@@ -37,6 +37,7 @@ public class Element implements Recordable {
       return products[0];
     }
 
+    @Override
     public String toString() {
       StringBuffer result = new StringBuffer("[ProductSet");
       for (int i = 0; i < products.length; i++) {
@@ -118,6 +119,7 @@ public class Element implements Recordable {
       return product.pickProduct();
     }
 
+    @Override
     public String toString() {
       return "[Transmutation " + target + " -> " + product + " at p=" + probability + "]";
     }
@@ -225,5 +227,10 @@ public class Element implements Recordable {
       return false;
     }
     return true;
+  }
+
+  @Override
+  public String toString() {
+    return "[Element " + name + "]";
   }
 }

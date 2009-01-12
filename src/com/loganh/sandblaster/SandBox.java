@@ -469,6 +469,7 @@ public class SandBox implements Recordable {
             || lastChange[x][y] != other.lastChange[x][y]
             || lastFloated[x][y] != other.lastFloated[x][y]) {
           Log.i("particle state mismatch at {0}, {1}", x, y);
+          Log.i(" elements: {0} vs. {1}", elements[x][y], other.elements[x][y]);
           Log.i(" ages: {0} vs. {1}", ages[x][y], other.ages[x][y]);
           Log.i(" lastSet: {0} vs. {1}", lastSet[x][y], other.lastSet[x][y]);
           Log.i(" lastChange: {0} vs. {1}", lastChange[x][y], other.lastChange[x][y]);
