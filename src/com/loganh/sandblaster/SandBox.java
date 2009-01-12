@@ -151,7 +151,7 @@ public class SandBox implements Recordable {
     int r2 = radius * radius;
     for (int i = -radius; i <= radius; i++) {
       for (int j = -radius; j <= radius; j++) {
-        if (i * i + j * j <= r2 && (!element.mobile || random.nextFloat() < prob)) {
+        if (i * i + j * j <= r2 && (element == null || !element.mobile || random.nextFloat() < prob)) {
           setParticle(x + i, y + j, element);
         }
       }
