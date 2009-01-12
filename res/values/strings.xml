@@ -21,4 +21,6 @@
 
   <string name="load_error_title">Load Error</string>
   <string name="load_error_message">Unable to load snapshot %1$s</string>
+
+  <string name="eraser">Eraser</string>
 </resources>

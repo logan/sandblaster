@@ -143,6 +143,21 @@ public class SandBox implements Recordable {
     }
   }
 
+  public void setParticle(int x, int y, Element element, int radius) {
+    setParticle(x, y, element, radius, 0.4f);
+  }
+
+  public void setParticle(int x, int y, Element element, int radius, float prob) {
+    int r2 = radius * radius;
+    for (int i = -radius; i <= radius; i++) {
+      for (int j = -radius; j <= radius; j++) {
+        if (i * i + j * j <= r2 && (!element.mobile || random.nextFloat() < prob)) {
+          setParticle(x + i, y + j, element);
+        }
+      }
+    }
+  }
+
   public void setParticle(int x, int y, Element element) {
     if (x >= 0 && y >= 0 && x < width && y < height) {
       lastSet[x][y] = iteration;
@@ -180,14 +195,14 @@ public class SandBox implements Recordable {
     }
   }
 
-  synchronized public void line(Element element, int x1, int y1, int x2, int y2) {
+  synchronized public void line(Element element, int radius, int x1, int y1, int x2, int y2) {
     int dx = x1 - x2;
     int dy = y1 - y2;
     int d = Math.max(Math.abs(dx), Math.abs(dy));
     for (int i = 0; i <= d; i++) {
       int x = Math.round(x2 + ((float) i / d) * dx);
       int y = Math.round(y2 + ((float) i / d) * dy);
-      setParticle(x, y, element);
+      setParticle(x, y, element, radius, 0.1f);
     }
   }
 

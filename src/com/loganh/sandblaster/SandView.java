@@ -193,7 +193,7 @@ public class SandView extends LinearLayout
       penDownTime = SystemClock.uptimeMillis();
       lastPen = camera.viewToObject(eventPoint);
       presenter.addSource(palette.getElement(), lastPen.x, lastPen.y);
-      presenter.setParticle(palette.getElement(), lastPen.x, lastPen.y);
+      presenter.setParticle(palette.getElement(), palette.radius, lastPen.x, lastPen.y);
       presenter.draw();
       presenter.resumeDriver();
       return true;
@@ -205,7 +205,7 @@ public class SandView extends LinearLayout
       penDownTime = SystemClock.uptimeMillis();
       presenter.pauseDriver();
       presenter.removeSource(lastPen.x, lastPen.y);
-      presenter.line(palette.getElement(), lastPen.x, lastPen.y, newPen.x, newPen.y);
+      presenter.line(palette.getElement(), palette.radius, lastPen.x, lastPen.y, newPen.x, newPen.y);
       lastPen = newPen;
       presenter.addSource(palette.getElement(), lastPen.x, lastPen.y);
       presenter.draw();

@@ -6,7 +6,7 @@ import java.util.*;
 
 public class UndoStack implements Recordable {
 
-  public static final int DEFAULT_MAX_BYTES = 1 << 20;
+  public static final int DEFAULT_MAX_BYTES = 150000;
 
   private int maxBytes;
   private LinkedList<byte[]> stack;

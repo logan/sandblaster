@@ -17,11 +17,13 @@ public class PaletteView extends View implements SandBoxPresenter.LoadListener {
 
   public Element[] elements;
   public int selected;
+  public int radius;
   private Point[] labelPositions;
   private SandBoxPresenter presenter;
 
   public PaletteView(Context context, AttributeSet attrs) {
     super(context, attrs);
+    radius = 1;
   }
 
   public void setSandBoxPresenter(SandBoxPresenter presenter) {
@@ -40,6 +42,7 @@ public class PaletteView extends View implements SandBoxPresenter.LoadListener {
         elementList.add(element);
       }
     }
+    elementList.add(null);
     elements = elementList.toArray(new Element[]{});
     labelPositions = new Point[elements.length];
     invalidate();
@@ -55,7 +58,7 @@ public class PaletteView extends View implements SandBoxPresenter.LoadListener {
     Paint paint = new Paint();
     for (Element element : elements) {
       Rect rect = new Rect(offset * elemWidth + 2, 2, (offset + 1) * elemWidth - 2, (int) getHeight() - 2);
-      paint.setColor(element.color);
+      paint.setColor(element == null ? Color.BLACK : element.color);
       paint.setStyle(Paint.Style.FILL);
       canvas.drawRect(rect, paint);
       if (offset == selected) {
@@ -73,15 +76,16 @@ public class PaletteView extends View implements SandBoxPresenter.LoadListener {
 
   private void drawLabel(int offset, Canvas canvas, Rect button, Element element) {
     Paint paint = new Paint();
+    paint.setColor(element == null ? Color.WHITE : Color.BLACK);
     if (labelPositions[offset] == null) {
-      String label = elements[offset].name;
+      String label = element == null ? "Eraser" : element.name;
       Rect bounds = new Rect();
       paint.getTextBounds(label, 0, label.length(), bounds);
       int left = Math.max(button.left, button.centerX() - bounds.centerX());
       int top = Math.max(button.top, button.centerY() - bounds.centerY());
       labelPositions[offset] = new Point(left, top);
     }
-    canvas.drawText(elements[offset].name, labelPositions[offset].x, labelPositions[offset].y, paint);
+    canvas.drawText(element == null ? "Eraser" : element.name, labelPositions[offset].x, labelPositions[offset].y, paint);
   }
 
   @Override

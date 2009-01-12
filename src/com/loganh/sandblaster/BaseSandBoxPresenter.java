@@ -118,18 +118,26 @@ public class BaseSandBoxPresenter implements SandBoxPresenter {
     }
   }
 
-  public void setParticle(Element element, int x, int y) {
+  public void setParticle(Element element, int radius, int x, int y) {
     if (sandbox != null) {
       notifyEditListeners();
-      sandbox.setParticle(x, y, element);
+      sandbox.setParticle(x, y, element, radius);
+    }
+  }
+
+  public void setParticle(Element element, int x, int y) {
+    setParticle(element, 1, x, y);
+  }
+
+  public void line(Element element, int radius, int x1, int y1, int x2, int y2) {
+    if (sandbox != null) {
+      notifyEditListeners();
+      sandbox.line(element, radius, x1, y1, x2, y2);
     }
   }
 
   public void line(Element element, int x1, int y1, int x2, int y2) {
-    if (sandbox != null) {
-      notifyEditListeners();
-      sandbox.line(element, x1, y1, x2, y2);
-    }
+    line(element, 1, x1, y1, x2, y2);
   }
 
   public void start() {
