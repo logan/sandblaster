@@ -206,6 +206,10 @@ public class SandBox implements Recordable {
     }
   }
 
+  public void line(Element element, int x1, int y1, int x2, int y2) {
+    line(element, 0, x1, y1, x2, y2);
+  }
+
   synchronized public void update() {
     for (Point pt : sources.keySet()) {
       setParticle(pt.x, pt.y, sources.get(pt));
