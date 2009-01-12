@@ -48,6 +48,12 @@
           android:layout_width="wrap_content"
           android:layout_height="wrap_content"/>
 
+      <ImageButton
+          android:id="@+id/undo"
+          android:src="@android:drawable/ic_menu_revert"
+          android:layout_height="wrap_content"
+          android:layout_width="wrap_content"/>
+
     </LinearLayout>
 
   </com.loganh.sandblaster.SandView>

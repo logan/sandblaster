@@ -31,8 +31,10 @@ public class SandView extends LinearLayout
   private Point lastPen;
   private float scale;
   private ImageButton playbackButton;
+  private ImageButton undoButton;
   private OnClickListener playListener;
   private OnClickListener pauseListener;
+  private UndoStack undoStack;
 
   public SandView(Context context, AttributeSet attrs) {
     super(context, attrs);
@@ -46,6 +48,7 @@ public class SandView extends LinearLayout
         return new Point(presenter.getWidth(), presenter.getHeight());
       }
     };
+    undoStack = new UndoStack();
   }
 
   public void setSandBoxPresenter(SandBoxPresenter presenter) {
@@ -60,7 +63,6 @@ public class SandView extends LinearLayout
 
   @Override
   protected void onFinishInflate() {
-    Log.i("Finish inflate");
     surface = (SurfaceView) findViewById(R.id.surface);
     zoomControls = (ZoomControls) findViewById(R.id.zoom);
     if (presenter != null) {
@@ -72,7 +74,6 @@ public class SandView extends LinearLayout
     playbackButton.setEnabled(false);
     playListener = new OnClickListener() {
       public void onClick(View v) {
-        Log.i("click on play");
         playbackButton.setEnabled(false);
         presenter.unpause();
       }
@@ -80,7 +81,6 @@ public class SandView extends LinearLayout
 
     pauseListener = new OnClickListener() {
       public void onClick(View v) {
-        Log.i("click on pause");
         playbackButton.setEnabled(false);
         presenter.pause();
       }
@@ -98,6 +98,27 @@ public class SandView extends LinearLayout
             zoomOut();
           }
         });
+
+    undoButton = (ImageButton) findViewById(R.id.undo);
+    undoButton.setEnabled(!undoStack.isEmpty());
+    undoButton.setOnClickListener(new OnClickListener() {
+          public void onClick(View v) {
+            undo();
+          }
+        });
+  }
+
+  private void undo() {
+    SandBox sandbox = undoStack.pop();
+    if (sandbox != null) {
+      presenter.setSandBox(sandbox);
+    }
+    undoButton.setEnabled(!undoStack.isEmpty());
+  }
+
+  private void pushUndo() {
+    undoStack.push(presenter.getSandBox());
+    undoButton.setEnabled(!undoStack.isEmpty());
   }
 
   @Override
@@ -109,6 +130,7 @@ public class SandView extends LinearLayout
     playbackButton.setImageResource(android.R.drawable.ic_media_pause);
     playbackButton.setEnabled(true);
     playbackButton.setOnClickListener(pauseListener);
+    pushUndo();
   }
 
   public void onStop() {
@@ -119,6 +141,8 @@ public class SandView extends LinearLayout
 
   public void onLoad() {
     playbackButton.setEnabled(true);
+    undoButton.setEnabled(false);
+    undoStack.clear();
     zoomToFit();
   }
 
@@ -145,12 +169,10 @@ public class SandView extends LinearLayout
 
   private void setScale(float scale) {
     presenter.pauseDriver();
-    Log.i("setting scale from {0} to {1}", this.scale, scale);
     this.scale = scale;
     camera.setScale(scale);
     zoomControls.setIsZoomInEnabled(canZoomIn());
     zoomControls.setIsZoomOutEnabled(canZoomOut());
-    Log.i("rendering");
     presenter.draw();
     presenter.resumeDriver();
   }
@@ -168,11 +190,14 @@ public class SandView extends LinearLayout
     Point eventPoint = new Point((int) event.getX(), (int) event.getY());
     if (event.getAction() == MotionEvent.ACTION_DOWN) {
       // TODO: pressure sensitivity
+      presenter.pauseDriver();
+      pushUndo();
       penDown = true;
       penDownTime = SystemClock.uptimeMillis();
       lastPen = camera.viewToObject(eventPoint);
-      presenter.pauseDriver();
       presenter.addSource(palette.getElement(), lastPen.x, lastPen.y);
+      presenter.setParticle(palette.getElement(), lastPen.x, lastPen.y);
+      presenter.draw();
       presenter.resumeDriver();
       return true;
     } else if (penDown && event.getAction() == MotionEvent.ACTION_MOVE) {

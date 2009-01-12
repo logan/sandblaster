@@ -28,6 +28,8 @@ public class SandBoxPresenterImpl extends BaseSandBoxPresenter {
       stop();
     }
     super.setSandBox(sandbox);
+    Log.i("setting sandbox at iteration {0}", sandbox.iteration);
+    draw();
   }
 
   @Override
@@ -79,6 +81,7 @@ public class SandBoxPresenterImpl extends BaseSandBoxPresenter {
       Snapshot snapshot = new Snapshot(name, context);
       if (snapshot.sandbox != null) {
         setSandBox(snapshot.sandbox);
+        notifyLoadListeners();
         return true;
       } else {
         Log.e("Error parsing {0}", name);
@@ -95,6 +98,7 @@ public class SandBoxPresenterImpl extends BaseSandBoxPresenter {
       SandBox sandbox = Snapshot.read(new InputStreamReader(assets.open(name)), context);
       if (sandbox != null) {
         setSandBox(sandbox);
+        notifyLoadListeners();
         return true;
       }
       Log.e("error loading sandbox from asset {0}", name);
@@ -111,6 +115,7 @@ public class SandBoxPresenterImpl extends BaseSandBoxPresenter {
     try {
       InputStream stream = assets.open("snapshot_new.xml");
       setSandBox(Snapshot.read(new InputStreamReader(stream), context));
+      notifyLoadListeners();
       return true;
     } catch (IOException ex) {
       Log.e("Failed to load snapshot_new.xml", ex);

@@ -58,9 +58,6 @@ public class BaseSandBoxPresenter implements SandBoxPresenter {
   public void setSandBox(SandBox sandbox) {
     this.sandbox = sandbox;
     renderer.setSandBox(sandbox);
-    for (LoadListener loadListener : loadListeners) {
-      loadListener.onLoad();
-    }
   }
 
   public int getWidth() {
@@ -92,6 +89,12 @@ public class BaseSandBoxPresenter implements SandBoxPresenter {
   protected void notifyEditListeners() {
     for (EditListener editListener : editListeners) {
       editListener.onEdit();
+    }
+  }
+
+  protected void notifyLoadListeners() {
+    for (LoadListener loadListener : loadListeners) {
+      loadListener.onLoad();
     }
   }
 

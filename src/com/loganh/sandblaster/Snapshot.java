@@ -85,7 +85,9 @@ public class Snapshot implements Comparable<Snapshot> {
     if (name == null) {
       name = "Autosave";
     }
-    write(sandbox, new OutputStreamWriter(context.openFileOutput(name + SNAPSHOT_EXTENSION, 0)));
+    synchronized (sandbox) {
+      write(sandbox, new OutputStreamWriter(context.openFileOutput(name + SNAPSHOT_EXTENSION, 0)));
+    }
     saveThumbnail(context);
   }
 
