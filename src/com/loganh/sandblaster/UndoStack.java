@@ -48,7 +48,9 @@ public class UndoStack implements Recordable {
       return null;
     }
     try {
-      return SandBox.unpack(stack.removeLast());
+      byte[] toRemove = stack.removeLast();
+      totalBytes -= toRemove.length;
+      return SandBox.unpack(toRemove);
     } catch (IOException ex) {
       Log.e("failed to deserialize sandbox", ex);
       return null;

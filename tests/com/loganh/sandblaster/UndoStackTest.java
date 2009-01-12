@@ -1,5 +1,7 @@
 package com.loganh.sandblaster;
 
+import java.io.IOException;
+
 import junit.framework.TestCase;
 
 
@@ -31,6 +33,17 @@ public class UndoStackTest extends TestCase {
     assertTrue(stack.push(sandbox));
     assertEquals(sandbox, stack.pop());
     assertNull(stack.pop());
+  }
+
+  public void testPop() throws IOException {
+    UndoStack stack = new UndoStack();
+    SandBox sandbox = new SandBox(1, 1);
+    sandbox.elementTable = Utils.getTestElementTable();
+    byte[] packedSandbox = sandbox.packToBytes();
+    assertTrue(stack.push(packedSandbox));
+    assertEquals(packedSandbox.length, stack.totalBytes);
+    assertEquals(sandbox, stack.pop());
+    assertEquals(0, stack.totalBytes);
   }
 
 }

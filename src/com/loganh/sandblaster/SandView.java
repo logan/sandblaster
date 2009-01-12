@@ -227,6 +227,7 @@ public class SandView extends LinearLayout
   public boolean onTrackballEvent(MotionEvent event) {
     if (event.getAction() == MotionEvent.ACTION_MOVE) {
       camera.pan(SCROLL_FACTOR * event.getX(), SCROLL_FACTOR * event.getY());
+      presenter.draw();
       return true;
     }
     return false;
