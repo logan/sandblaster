@@ -76,10 +76,10 @@ public class SandBoxPresenterImpl extends BaseSandBoxPresenter {
 
   @Override
   public boolean loadSandBox(String name) {
-    // TODO(logan): Separate 1.5 loading from new base64 loading.
     try {
       Snapshot snapshot = new Snapshot(name, context);
       if (snapshot.sandbox != null) {
+        undoStack = snapshot.undoStack;
         setSandBox(snapshot.sandbox);
         notifyLoadListeners();
         return true;
@@ -95,9 +95,10 @@ public class SandBoxPresenterImpl extends BaseSandBoxPresenter {
   @Override
   public boolean loadSandBoxFromAsset(String name) {
     try {
-      SandBox sandbox = Snapshot.read(new InputStreamReader(assets.open(name)), context);
+      SandBox sandbox = XmlSnapshot.read(new InputStreamReader(assets.open(name)), context);
       if (sandbox != null) {
         setSandBox(sandbox);
+        undoStack.clear();
         notifyLoadListeners();
         return true;
       }
@@ -114,7 +115,8 @@ public class SandBoxPresenterImpl extends BaseSandBoxPresenter {
   public boolean newSandBox() {
     try {
       InputStream stream = assets.open("snapshot_new.xml");
-      setSandBox(Snapshot.read(new InputStreamReader(stream), context));
+      setSandBox(XmlSnapshot.read(new InputStreamReader(stream), context));
+      undoStack.clear();
       notifyLoadListeners();
       return true;
     } catch (IOException ex) {
@@ -128,7 +130,7 @@ public class SandBoxPresenterImpl extends BaseSandBoxPresenter {
   @Override
   public boolean saveSandBox(String name) {
     if (sandbox != null) {
-      Snapshot snapshot = new Snapshot(sandbox);
+      Snapshot snapshot = new Snapshot(sandbox, undoStack);
       snapshot.name = name;
       try {
         snapshot.save(context);

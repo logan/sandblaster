@@ -146,7 +146,7 @@ public class SandActivity extends Activity {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setCancelable(true);
             builder.setTitle(R.string.load_error_title);
-            builder.setMessage(R.string.load_error_message);
+            builder.setMessage(String.format(getResources().getString(R.string.load_error_message), name));
             builder.show();
           }
         }
@@ -158,7 +158,7 @@ public class SandActivity extends Activity {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setCancelable(true);
             builder.setTitle(R.string.save_error_title);
-            builder.setMessage(R.string.save_error_message);
+            builder.setMessage(String.format(getResources().getString(R.string.save_error_message), name));
             builder.show();
           }
         }
@@ -169,7 +169,7 @@ public class SandActivity extends Activity {
   private SandBox loadNewSandBox() {
     try {
       InputStream stream = getAssets().open("snapshot_new.xml");
-      return Snapshot.read(new InputStreamReader(stream), this);
+      return XmlSnapshot.read(new InputStreamReader(stream), this);
     } catch (IOException ex) {
       Log.e("Failed to load snapshot_new.xml", ex);
     } catch (XmlPullParserException ex) {

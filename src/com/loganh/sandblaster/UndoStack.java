@@ -1,11 +1,10 @@
 package com.loganh.sandblaster;
 
-import java.io.IOException;
-
+import java.io.*;
 import java.util.*;
 
 
-public class UndoStack {
+public class UndoStack implements Recordable {
 
   public static final int DEFAULT_MAX_BYTES = 1 << 20;
 
@@ -65,6 +64,26 @@ public class UndoStack {
 
   public boolean isEmpty() {
     return stack.isEmpty();
+  }
+
+  public void write(DataOutputStream out) throws IOException {
+    out.writeByte((byte) stack.size());
+    for (byte[] item : stack) {
+      out.writeInt(item.length);
+      out.write(item);
+    }
+  }
+
+  static public UndoStack read(DataInputStream in) throws IOException {
+    UndoStack stack = new UndoStack();
+    byte stackSize = in.readByte();
+    Log.i("stack size: {0}", stackSize);
+    while (stackSize-- > 0) {
+      byte[] item = new byte[in.readInt()];
+      in.read(item);
+      stack.push(item);
+    }
+    return stack;
   }
 
 }

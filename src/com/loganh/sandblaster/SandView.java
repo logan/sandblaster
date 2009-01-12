@@ -34,7 +34,6 @@ public class SandView extends LinearLayout
   private ImageButton undoButton;
   private OnClickListener playListener;
   private OnClickListener pauseListener;
-  private UndoStack undoStack;
 
   public SandView(Context context, AttributeSet attrs) {
     super(context, attrs);
@@ -48,7 +47,6 @@ public class SandView extends LinearLayout
         return new Point(presenter.getWidth(), presenter.getHeight());
       }
     };
-    undoStack = new UndoStack();
   }
 
   public void setSandBoxPresenter(SandBoxPresenter presenter) {
@@ -100,7 +98,7 @@ public class SandView extends LinearLayout
         });
 
     undoButton = (ImageButton) findViewById(R.id.undo);
-    undoButton.setEnabled(!undoStack.isEmpty());
+    undoButton.setEnabled(presenter != null && !presenter.getUndoStack().isEmpty());
     undoButton.setOnClickListener(new OnClickListener() {
           public void onClick(View v) {
             undo();
@@ -109,16 +107,16 @@ public class SandView extends LinearLayout
   }
 
   private void undo() {
-    SandBox sandbox = undoStack.pop();
+    SandBox sandbox = presenter.getUndoStack().pop();
     if (sandbox != null) {
       presenter.setSandBox(sandbox);
     }
-    undoButton.setEnabled(!undoStack.isEmpty());
+    undoButton.setEnabled(!presenter.getUndoStack().isEmpty());
   }
 
   private void pushUndo() {
-    undoStack.push(presenter.getSandBox());
-    undoButton.setEnabled(!undoStack.isEmpty());
+    presenter.getUndoStack().push(presenter.getSandBox());
+    undoButton.setEnabled(!presenter.getUndoStack().isEmpty());
   }
 
   @Override
@@ -141,8 +139,7 @@ public class SandView extends LinearLayout
 
   public void onLoad() {
     playbackButton.setEnabled(true);
-    undoButton.setEnabled(false);
-    undoStack.clear();
+    undoButton.setEnabled(!presenter.getUndoStack().isEmpty());
     zoomToFit();
   }
 

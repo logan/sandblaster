@@ -11,12 +11,14 @@ public class BaseSandBoxPresenter implements SandBoxPresenter {
   protected Set<LoadListener> loadListeners;
   protected SandBox sandbox;
   protected SandBoxRenderer renderer;
+  protected UndoStack undoStack;
 
   public BaseSandBoxPresenter() {
     playbackListeners = new HashSet<PlaybackListener>();
     editListeners = new HashSet<EditListener>();
     loadListeners = new HashSet<LoadListener>();
     renderer = new SandBoxRenderer();
+    undoStack = new UndoStack();
   }
 
   public void addPlaybackListener(PlaybackListener listener) {
@@ -49,6 +51,10 @@ public class BaseSandBoxPresenter implements SandBoxPresenter {
   public void setView(SurfaceView surface, SandBoxRenderer.Camera camera) {
     renderer.setSurfaceView(surface);
     renderer.setCamera(camera);
+  }
+
+  public UndoStack getUndoStack() {
+    return undoStack;
   }
 
   public SandBox getSandBox() {
