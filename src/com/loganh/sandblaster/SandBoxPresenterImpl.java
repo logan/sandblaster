@@ -53,9 +53,12 @@ public class SandBoxPresenterImpl extends BaseSandBoxPresenter {
     if (sandbox == null) {
       Log.i("no sandbox yet, trying {0}", AUTOSAVE);
       if (!loadSandBox(AUTOSAVE)) {
-        Log.i("could not load autosave, creating new sandbox");
-        if (!newSandBox()) {
-          Log.e("unable to create new sandbox");
+        Log.i("could not load autosave, loading demo");
+        if (!loadSandBoxFromAsset("snapshot_demo.xml")) {
+          Log.e("could not install demo, loading new sandbox");
+          if (!newSandBox()) {
+            Log.e("unable to create new sandbox");
+          }
         }
       }
     }
