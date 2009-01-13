@@ -1,6 +1,8 @@
 package com.loganh.sandblaster;
 
 import java.io.*;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import android.content.res.AssetManager;
 import android.content.Context;
@@ -12,7 +14,8 @@ public class SandBoxPresenterImpl extends BaseSandBoxPresenter {
 
   private Context context;
   private AssetManager assets;
-  private SandBoxDriver driver;
+  private Timer timer;
+  private SandBoxTimerTask task;
   private float fps;
 
   public SandBoxPresenterImpl(AssetManager assets, Context context, float fps) {
@@ -24,9 +27,7 @@ public class SandBoxPresenterImpl extends BaseSandBoxPresenter {
 
   @Override
   public void setSandBox(SandBox sandbox) {
-    if (driver != null) {
-      stop();
-    }
+    stop();
     super.setSandBox(sandbox);
     Log.i("setting sandbox at iteration {0}", sandbox.iteration);
     draw();
@@ -34,9 +35,10 @@ public class SandBoxPresenterImpl extends BaseSandBoxPresenter {
 
   @Override
   public void stop() {
-    if (driver != null) {
-      driver.shutdown();
-      driver = null;
+    if (timer != null) {
+      timer.cancel();
+      timer = null;
+      task = null;
       super.stop();
     }
   }
@@ -50,10 +52,11 @@ public class SandBoxPresenterImpl extends BaseSandBoxPresenter {
         Log.e("unable to create new sandbox");
       }
     }
-    if (driver == null && sandbox.playing) {
+    if (timer == null && sandbox.playing) {
       super.start();
-      driver = new SandBoxDriver(sandbox, renderer, fps);
-      driver.start();
+      timer = new Timer();
+      task = new SandBoxTimerTask();
+      timer.scheduleAtFixedRate(task, 0, (long) (1000f / fps));
       Log.i("presenter playback started");
     }
   }
@@ -149,15 +152,26 @@ public class SandBoxPresenterImpl extends BaseSandBoxPresenter {
 
   @Override
   public void pauseDriver() {
-    if (driver != null) {
-      driver.sleep();
+    if (task != null) {
+      task.cancel();
+      task = null;
     }
   }
 
   @Override
   public void resumeDriver() {
-    if (driver != null) {
-      driver.wake();
+    if (timer != null) {
+      task = new SandBoxTimerTask();
+      timer.scheduleAtFixedRate(task, 0, (long) (1000f / fps));
+    }
+  }
+
+  private class SandBoxTimerTask extends TimerTask {
+
+    @Override
+    public void run() {
+      sandbox.update();
+      renderer.draw();
     }
   }
 
