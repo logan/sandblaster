@@ -36,7 +36,7 @@
       <element-decay sand:probability="0.05" sand:lifetime="20" sand:product="Dead Plant"/>
     </element>
 
-    <element sand:name="Fire" sand:id="G" sand:drawable="true" sand:color="#ff0000" sand:density="-0.1">
+    <element sand:name="Fire" sand:id="G" sand:drawable="true" sand:color="#ff0000" sand:density="-0.01">
       <element-transform sand:subject="Plant" sand:probability="0.2" sand:product="Fire"/>
       <element-transform sand:subject="Dead Plant" sand:probability="0.3" sand:product="Fire"/>
       <element-transform sand:subject="Oil" sand:probability="0.4" sand:product="Fire"/>
