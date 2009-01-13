@@ -107,6 +107,7 @@ public class Snapshot implements Comparable<Snapshot> {
       DataInputStream dataStream = new DataInputStream(stream);
       sandbox = SandBox.read(dataStream);
       undoStack = UndoStack.read(dataStream);
+      Log.i("Loaded snapshot from {0}", name);
     }
   }
 
@@ -121,6 +122,7 @@ public class Snapshot implements Comparable<Snapshot> {
     undoStack.write(out);
     out.close();
     saveThumbnail(context);
+    Log.i("Saved snapshot to {0}", name);
   }
 
   public Bitmap render() {

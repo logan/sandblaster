@@ -78,10 +78,11 @@ public class SandBoxPresenterImpl extends BaseSandBoxPresenter {
 
   @Override
   public void unpause() {
+    Log.i("presenter unpause; sandbox = {0}", sandbox);
     if (sandbox != null) {
       sandbox.playing = true;
-      start();
     }
+    start();
   }
 
   @Override
@@ -144,6 +145,12 @@ public class SandBoxPresenterImpl extends BaseSandBoxPresenter {
 
   @Override
   public boolean saveSandBox(String name) {
+    if (sandbox == null) {
+      Log.i("no sandbox to save, loading from {0}", AUTOSAVE);
+      if (!loadSandBox(AUTOSAVE)) {
+        Log.e("failed to load {0}", AUTOSAVE);
+      }
+    }
     if (sandbox != null) {
       Snapshot snapshot = new Snapshot(sandbox, undoStack);
       snapshot.name = name;
@@ -153,6 +160,8 @@ public class SandBoxPresenterImpl extends BaseSandBoxPresenter {
       } catch (IOException ex) {
         Log.e("failed to save sandbox to " + name, ex);
       }
+    } else {
+      Log.e("no sandbox to save yet");
     }
     return false;
   }

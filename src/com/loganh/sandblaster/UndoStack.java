@@ -33,10 +33,8 @@ public class UndoStack implements Recordable {
 
   public boolean push(byte[] bytes) {
     stack.add(bytes);
-    Log.i("adding {0} bytes", bytes.length);
     totalBytes += bytes.length;
     while (totalBytes > maxBytes) {
-      Log.i("removing {0} bytes", stack.getFirst().length);
       totalBytes -= stack.removeFirst().length;
     }
     Log.i("stack size: {0} items in {1} bytes", stack.size(), totalBytes);
@@ -79,7 +77,6 @@ public class UndoStack implements Recordable {
   static public UndoStack read(DataInputStream in) throws IOException {
     UndoStack stack = new UndoStack();
     byte stackSize = in.readByte();
-    Log.i("stack size: {0}", stackSize);
     while (stackSize-- > 0) {
       byte[] item = new byte[in.readInt()];
       in.read(item);

@@ -60,13 +60,14 @@ public class SandActivity extends Activity {
     super.onResume();
     Log.i("resume");
     appRunning = true;
-    presenter.start();
+    presenter.unpause();
   }
 
   @Override
   public void onPause() {
     super.onPause();
-    presenter.stop();
+    Log.i("pause");
+    presenter.pause();
     appRunning = false;
   }
 
@@ -195,12 +196,14 @@ public class SandActivity extends Activity {
   }
 
   private void load() {
+    presenter.stop();
     Intent intent = new Intent(Intent.ACTION_PICK);
     intent.setDataAndType(Uri.EMPTY, "application/x-sandblaster-loadable");
     startActivityForResult(intent, LOAD_SNAPSHOT_REQUEST);
   }
 
   private void save() {
+    presenter.stop();
     Intent intent = new Intent(Intent.ACTION_PICK);
     intent.setDataAndType(Uri.EMPTY, "application/x-sandblaster-saveable");
     startActivityForResult(intent, SAVE_SNAPSHOT_REQUEST);
