@@ -51,21 +51,8 @@ public class SandActivity extends Activity {
     view = (SandView) findViewById(R.id.sand);
     palette = (PaletteView) findViewById(R.id.palette);
     presenter = new SandBoxPresenterImpl(getAssets(), this, FPS);
-    if (!presenter.loadSandBox("Autosave")) {
-      presenter.newSandBox();
-    }
     view.setPaletteView(palette);
     view.setSandBoxPresenter(presenter);
-
-    presenter.addPlaybackListener(new SandBoxPresenter.PlaybackListener() {
-          public void onStart() {
-            onSandBoxStart();
-          }
-
-          public void onStop() {
-            onSandBoxStop();
-          }
-        });
   }
 
   @Override
@@ -217,16 +204,6 @@ public class SandActivity extends Activity {
     Intent intent = new Intent(Intent.ACTION_PICK);
     intent.setDataAndType(Uri.EMPTY, "application/x-sandblaster-saveable");
     startActivityForResult(intent, SAVE_SNAPSHOT_REQUEST);
-  }
-
-  public void onSandBoxStart() {
-  }
-
-  public void onSandBoxStop() {
-    if (appRunning) {
-      Log.i("dumping to Autosave...");
-      presenter.saveSandBox("Autosave");
-    }
   }
 
   private void clear() {

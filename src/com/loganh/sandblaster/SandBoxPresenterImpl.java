@@ -12,6 +12,8 @@ import org.xmlpull.v1.XmlPullParserException;
 
 public class SandBoxPresenterImpl extends BaseSandBoxPresenter {
 
+  static public final String AUTOSAVE = "Autosave";
+
   private Context context;
   private AssetManager assets;
   private Timer timer;
@@ -40,6 +42,8 @@ public class SandBoxPresenterImpl extends BaseSandBoxPresenter {
       timer = null;
       task = null;
       super.stop();
+      Log.i("after stop, taking {0} snapshot", AUTOSAVE);
+      saveSandBox(AUTOSAVE);
     }
   }
 
@@ -47,9 +51,12 @@ public class SandBoxPresenterImpl extends BaseSandBoxPresenter {
   public void start() {
     Log.i("presenter start request");
     if (sandbox == null) {
-      Log.i("creating new sandbox");
-      if (!newSandBox()) {
-        Log.e("unable to create new sandbox");
+      Log.i("no sandbox yet, trying {0}", AUTOSAVE);
+      if (!loadSandBox(AUTOSAVE)) {
+        Log.i("could not load autosave, creating new sandbox");
+        if (!newSandBox()) {
+          Log.e("unable to create new sandbox");
+        }
       }
     }
     if (timer == null && sandbox.playing) {
