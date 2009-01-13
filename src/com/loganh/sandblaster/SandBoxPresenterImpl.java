@@ -166,6 +166,16 @@ public class SandBoxPresenterImpl extends BaseSandBoxPresenter {
     }
   }
 
+  @Override
+  public void addPlaybackListener(PlaybackListener listener) {
+    super.addPlaybackListener(listener);
+    if (sandbox == null || timer == null) {
+      listener.onStop();
+    } else {
+      listener.onStart();
+    }
+  }
+
   private class SandBoxTimerTask extends TimerTask {
 
     @Override

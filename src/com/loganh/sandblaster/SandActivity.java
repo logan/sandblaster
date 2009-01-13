@@ -40,8 +40,8 @@ public class SandActivity extends Activity {
 
   private SandView view;
   private PaletteView palette;
-
   private SandBoxPresenter presenter;
+  private boolean appRunning;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -72,6 +72,7 @@ public class SandActivity extends Activity {
   public void onResume() {
     super.onResume();
     Log.i("resume");
+    appRunning = true;
     presenter.start();
   }
 
@@ -79,6 +80,7 @@ public class SandActivity extends Activity {
   public void onPause() {
     super.onPause();
     presenter.stop();
+    appRunning = false;
   }
 
   @Override
@@ -221,7 +223,10 @@ public class SandActivity extends Activity {
   }
 
   public void onSandBoxStop() {
-    presenter.saveSandBox("Autosave");
+    if (appRunning) {
+      Log.i("dumping to Autosave...");
+      presenter.saveSandBox("Autosave");
+    }
   }
 
   private void clear() {
