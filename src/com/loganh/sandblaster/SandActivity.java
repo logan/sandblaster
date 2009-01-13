@@ -169,7 +169,7 @@ public class SandActivity extends Activity {
   private SandBox loadNewSandBox() {
     try {
       InputStream stream = getAssets().open("snapshot_new.xml");
-      return XmlSnapshot.read(new InputStreamReader(stream), this);
+      return XmlSnapshot.read(new BufferedReader(new InputStreamReader(stream)), this);
     } catch (IOException ex) {
       Log.e("Failed to load snapshot_new.xml", ex);
     } catch (XmlPullParserException ex) {

@@ -162,7 +162,7 @@ abstract public class XmlSnapshot {
 
   static private ElementTable loadDefaultElementTable(Context context) throws IOException, XmlPullParserException {
     InputStream stream = context.getAssets().open("snapshot_new.xml");
-    SandBox sandbox = XmlSnapshot.read(new InputStreamReader(stream), context);
+    SandBox sandbox = XmlSnapshot.read(new BufferedReader(new InputStreamReader(stream)), context);
     return sandbox.elementTable;
   }
 
@@ -413,7 +413,7 @@ abstract public class XmlSnapshot {
   }
 
   static public SandBox read_1_5(SandBox sandbox, String name, Context context) throws IOException, XmlPullParserException {
-    return read_1_5(sandbox, new InputStreamReader(context.openFileInput(name + Snapshot.SNAPSHOT_EXTENSION)));
+    return read_1_5(sandbox, new BufferedReader(new InputStreamReader(context.openFileInput(name + Snapshot.SNAPSHOT_EXTENSION))));
   }
 
 }

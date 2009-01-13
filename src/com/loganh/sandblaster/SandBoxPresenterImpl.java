@@ -100,7 +100,7 @@ public class SandBoxPresenterImpl extends BaseSandBoxPresenter {
   @Override
   public boolean loadSandBoxFromAsset(String name) {
     try {
-      SandBox sandbox = XmlSnapshot.read(new InputStreamReader(assets.open(name)), context);
+      SandBox sandbox = XmlSnapshot.read(new BufferedReader(new InputStreamReader(assets.open(name))), context);
       if (sandbox != null) {
         setSandBox(sandbox);
         undoStack.clear();
@@ -122,7 +122,7 @@ public class SandBoxPresenterImpl extends BaseSandBoxPresenter {
   public boolean newSandBox() {
     try {
       InputStream stream = assets.open("snapshot_new.xml");
-      setSandBox(XmlSnapshot.read(new InputStreamReader(stream), context));
+      setSandBox(XmlSnapshot.read(new BufferedReader(new InputStreamReader(stream)), context));
       undoStack.clear();
       notifyLoadListeners();
       unpause();

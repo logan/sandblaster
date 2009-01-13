@@ -43,6 +43,7 @@ public class Snapshot implements Comparable<Snapshot> {
   static final public int THUMBNAIL_HEIGHT = 60;
 
   static final private String XML_PREFIX = "<?xml";
+  static final private int BUFFER_SIZE = 120000;
 
   public String name;
   public SandBox sandbox;
@@ -88,7 +89,7 @@ public class Snapshot implements Comparable<Snapshot> {
   }
 
   public void load(Context context) throws IOException {
-    InputStream stream = new BufferedInputStream(context.openFileInput(name + SNAPSHOT_EXTENSION));
+    InputStream stream = new BufferedInputStream(context.openFileInput(name + SNAPSHOT_EXTENSION), BUFFER_SIZE);
     if (isXml(stream)) {
       Log.i("found xml snapshot");
       stream.reset();
@@ -113,7 +114,7 @@ public class Snapshot implements Comparable<Snapshot> {
     if (name == null) {
       name = "Autosave";
     }
-    DataOutputStream out = new DataOutputStream(new BufferedOutputStream(context.openFileOutput(name + SNAPSHOT_EXTENSION, 0)));
+    DataOutputStream out = new DataOutputStream(new BufferedOutputStream(context.openFileOutput(name + SNAPSHOT_EXTENSION, 0), BUFFER_SIZE));
     synchronized (sandbox) {
       sandbox.write(out);
     }
