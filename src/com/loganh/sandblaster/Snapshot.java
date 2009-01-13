@@ -113,7 +113,7 @@ public class Snapshot implements Comparable<Snapshot> {
     if (name == null) {
       name = "Autosave";
     }
-    DataOutputStream out = new DataOutputStream(context.openFileOutput(name + SNAPSHOT_EXTENSION, 0));
+    DataOutputStream out = new DataOutputStream(new BufferedOutputStream(context.openFileOutput(name + SNAPSHOT_EXTENSION, 0)));
     synchronized (sandbox) {
       sandbox.write(out);
     }
