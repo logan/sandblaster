@@ -13,6 +13,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.Window;
 import android.webkit.WebView;
+import android.widget.Toast;
 
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -133,27 +134,30 @@ public class SandActivity extends Activity {
         if (resultCode == Snapshot.LOAD_SNAPSHOT_RESULT) {
           String name = data.getData().getSchemeSpecificPart();
           if (!presenter.loadSandBox(name)) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setCancelable(true);
-            builder.setTitle(R.string.load_error_title);
-            builder.setMessage(String.format(getResources().getString(R.string.load_error_message), name));
-            builder.show();
+            showToast(R.string.load_error_message, name);
           }
         }
         break;
       case SAVE_SNAPSHOT_REQUEST:
         if (resultCode == Snapshot.SAVE_SNAPSHOT_RESULT) {
           String name = data.getData().getSchemeSpecificPart();
-          if (!presenter.saveSandBox(name)) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setCancelable(true);
-            builder.setTitle(R.string.save_error_title);
-            builder.setMessage(String.format(getResources().getString(R.string.save_error_message), name));
-            builder.show();
+          if (presenter.saveSandBox(name)) {
+            showToast(R.string.save_success_message, name);
+          } else {
+            showToast(R.string.save_error_message, name);
           }
         }
         break;
     }
+  }
+
+  private void showToast(int resid, Object... params) {
+    showToast(getResources().getString(resid), params);
+  }
+
+  private void showToast(String format, Object... params) {
+    Toast toast = Toast.makeText(this, String.format(format, params), Toast.LENGTH_SHORT);
+    toast.show();
   }
 
   private SandBox loadNewSandBox() {

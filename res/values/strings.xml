@@ -16,10 +16,9 @@
 
   <string name="save_hint">Enter new name here</string>
   <string name="save_button">Save</string>
-  <string name="save_error_title">Save Error</string>
   <string name="save_error_message">Unable to save snapshot to %1$s</string>
+  <string name="save_success_message">Saved snapshot to %1$s</string>
 
-  <string name="load_error_title">Load Error</string>
   <string name="load_error_message">Unable to load snapshot %1$s</string>
 
   <string name="eraser">Eraser</string>

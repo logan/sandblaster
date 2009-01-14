@@ -37,9 +37,8 @@ public final class R {
     public static final class string {
         public static final int about_title=0x7f04000a;
         public static final int app_name=0x7f040000;
-        public static final int eraser=0x7f040011;
-        public static final int load_error_message=0x7f040010;
-        public static final int load_error_title=0x7f04000f;
+        public static final int eraser=0x7f040010;
+        public static final int load_error_message=0x7f04000f;
         public static final int menu_about=0x7f040003;
         public static final int menu_clear=0x7f040001;
         public static final int menu_delete_all=0x7f040009;
@@ -50,8 +49,8 @@ public final class R {
         public static final int menu_trace_on=0x7f040007;
         public static final int menu_zoom_to_fit=0x7f040006;
         public static final int save_button=0x7f04000c;
-        public static final int save_error_message=0x7f04000e;
-        public static final int save_error_title=0x7f04000d;
+        public static final int save_error_message=0x7f04000d;
         public static final int save_hint=0x7f04000b;
+        public static final int save_success_message=0x7f04000e;
     }
 }
