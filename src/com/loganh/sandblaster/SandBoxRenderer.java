@@ -120,14 +120,7 @@ public class SandBoxRenderer implements SurfaceHolder.Callback {
     synchronized (sandbox) {
       int w = sandbox.getWidth();
       int h = sandbox.getHeight();
-      for (int i = sandbox.lastCleanIndex; i != sandbox.lastDirtyIndex; i = (i + 1) % sandbox.dirtyPixels.length) {
-        int offset = sandbox.dirtyPixels[i];
-        int y = offset / w;
-        int x = offset % w;
-        Element e = sandbox.elements[x][y];
-        sandbox.bitmap.setPixel(x, h - y - 1, e == null ? Color.BLACK : e.color);
-      }
-      sandbox.lastCleanIndex = sandbox.lastDirtyIndex;
+      sandbox.bitmap.setPixels(sandbox.pixels, 0, w, 0, 0, w, h);
     }
   }
 

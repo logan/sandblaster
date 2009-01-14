@@ -199,8 +199,12 @@ public class SandBoxPresenterImpl extends BaseSandBoxPresenter {
 
     @Override
     public void run() {
-      sandbox.update();
-      renderer.draw();
+      try {
+        sandbox.update();
+        renderer.draw();
+      } catch (Exception ex) {
+        Log.e("update or draw failed", ex);
+      }
     }
   }
 

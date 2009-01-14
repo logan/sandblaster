@@ -10,7 +10,6 @@ public class Element implements Recordable {
     Element[] products;
     float[] weights;
     float totalWeight;
-    Random random;
 
     public ProductSet(Element[] products, float[] weights) {
       this.products = products;
@@ -18,7 +17,6 @@ public class Element implements Recordable {
       for (float weight : weights) {
         totalWeight += weight;
       }
-      random = new Random();
     }
 
     public Element pickProduct() {
@@ -27,7 +25,7 @@ public class Element implements Recordable {
       } else if (products.length == 1) {
         return products[0];
       }
-      float w = random.nextFloat() * totalWeight;
+      float w = SandBox.RNG.nextFloat() * totalWeight;
       for (int i = 0; i < products.length; i++) {
         if (w <= weights[i]) {
           return products[i];

@@ -13,6 +13,8 @@ import android.graphics.Point;
 
 public class SandBox implements Recordable {
 
+  int[] pixels;
+
   public final static int DEFAULT_WIDTH = 120;
   public final static int DEFAULT_HEIGHT = 160;
   public final static float SERIALIZATION_VERSION = 1.6f;
@@ -28,27 +30,13 @@ public class SandBox implements Recordable {
   // Age of the particle at (x, y).
   public int[][] ages;
 
-  // A doubly-linked list of particles for each row. The nearest neighbor to
-  // the left of (x, y) is at (leftNeighbors[x][y], y), if there is one.
-  public int[][] leftNeighbors;
-  public int[][] rightNeighbors;
-
   // Points where particles are continuously emitted.
-  public Map<Point, Element> sources;
+  public HashMap<Point, Element> sources;
 
   // Rendering.
 
   // TODO: move to renderer
   public Bitmap bitmap;
-
-  // Circular buffer of particle coordinates that need to be redrawn.
-  public int[] dirtyPixels;
-
-  // Position in dirtyPixels to the right of the last updated particle.
-  public int lastCleanIndex;
-
-  // Position in dirtyPixels to insert the next updated particle.
-  public int lastDirtyIndex;
 
   // Iterating.
   public boolean playing;
@@ -59,11 +47,41 @@ public class SandBox implements Recordable {
   int[][] lastChange;
   int[][] lastFloated;
 
-  private Random random;
-
   // Dimensions.
   private int width;
   private int height;
+
+  final static class RNG {
+    final static private int SIZE = 1024;
+    final static float[] floats = new float[SIZE];
+    final static boolean[] bools = new boolean[SIZE];
+    static int fptr;
+    static int bptr;
+
+    static {
+      Random r = new Random();
+      for (int i = 0; i < SIZE; i++) {
+        floats[i] = r.nextFloat();
+        bools[i] = floats[i] < 0.5f;
+      }
+      bptr = -1;
+      fptr = -1;
+    }
+
+    final static boolean nextBoolean() {
+      if (++bptr >= SIZE) {
+        bptr = 0;
+      }
+      return bools[bptr];
+    }
+
+    final static float nextFloat() {
+      if (++fptr >= SIZE) {
+        fptr = 0;
+      }
+      return floats[fptr];
+    }
+  }
 
   public SandBox() {
     this(DEFAULT_WIDTH, DEFAULT_HEIGHT);
@@ -72,7 +90,6 @@ public class SandBox implements Recordable {
   public SandBox(int width, int height) {
     this.width = width;
     this.height = height;
-    random = new Random();
     clear();
   }
 
@@ -80,24 +97,16 @@ public class SandBox implements Recordable {
     sources = new HashMap<Point, Element>();
     elements = new Element[width][height];
     ages = new int[width][height];
-    leftNeighbors = new int[width][height];
-    rightNeighbors = new int[width][height];
     lastSet = new int[width][height];
     lastChange = new int[width][height];
     lastFloated = new int[width][height];
     iteration = -1;
-    dirtyPixels = new int[width * height];
-    for (int x = 0; x < width; x++) {
-      for (int y = 0; y < height; y++) {
-        leftNeighbors[x][y] = -1;
-        rightNeighbors[x][y] = width;
-      }
-    }
     if (bitmap != null) {
       bitmap.eraseColor(Color.BLACK);
     } else {
       bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
     }
+    pixels = new int[width * height];
   }
 
   public int getWidth() {
@@ -151,7 +160,7 @@ public class SandBox implements Recordable {
     int r2 = radius * radius;
     for (int i = -radius; i <= radius; i++) {
       for (int j = -radius; j <= radius; j++) {
-        if (i * i + j * j <= r2 && (element == null || !element.mobile || random.nextFloat() < prob)) {
+        if (i * i + j * j <= r2 && (element == null || !element.mobile || RNG.nextFloat() < prob)) {
           setParticle(x + i, y + j, element);
         }
       }
@@ -162,35 +171,11 @@ public class SandBox implements Recordable {
     if (x >= 0 && y >= 0 && x < width && y < height) {
       lastSet[x][y] = iteration;
       if (element != elements[x][y]) {
-        if (lastChange[x][y] != iteration) {
-          dirtyPixels[lastDirtyIndex] = y * width + x;
-          lastDirtyIndex = (lastDirtyIndex + 1) % dirtyPixels.length;
-        }
         elements[x][y] = element;
         ages[x][y] = 0;
         lastChange[x][y] = iteration;
-        for (int nx = x - 1; nx > leftNeighbors[x][y]; nx--) {
-          if (element == null) {
-            rightNeighbors[nx][y] = rightNeighbors[x][y];
-          } else {
-            rightNeighbors[nx][y] = x;
-          }
-        }
-        for (int nx = x + 1; nx < rightNeighbors[x][y]; nx++) {
-          if (element == null) {
-            leftNeighbors[nx][y] = leftNeighbors[x][y];
-          } else {
-            leftNeighbors[nx][y] = x;
-          }
-        }
-        if (element != null) {
-          if (leftNeighbors[x][y] >= 0) {
-            rightNeighbors[leftNeighbors[x][y]][y] = x;
-          }
-          if (rightNeighbors[x][y] < width) {
-            leftNeighbors[rightNeighbors[x][y]][y] = x;
-          }
-        }
+        int ty = height - y - 1;
+        pixels[ty * width + x] = element == null ? Color.BLACK : element.color;
       }
     }
   }
@@ -218,37 +203,47 @@ public class SandBox implements Recordable {
     ++iteration;
 
     for (int y = 0; y < height; y++) {
-      int[][] neighbors = rightNeighbors;
       int start = 0;
-      if (random.nextBoolean()) {
-        neighbors = leftNeighbors;
+      int last = width;
+      int dir = 1;
+      if (RNG.nextBoolean()) {
         start = width - 1;
+        last = -1;
+        dir = -1;
       }
-      int x = -2;
-      while (true) {
-        if (x == -2) {
-          x = start;
-        } else {
-          x = neighbors[x][y];
-        }
-        if (x < 0 || x >= width) {
-          break;
-        }
+      for (int x = start; x != last; x += dir) {
         Element e = elements[x][y];
         if (e == null) {
           continue;
         }
+
+        // Vertical movement.
+        if (y == 0 && e.density > 0) {
+          // Drop off the screen.
+          setParticle(x, y, null);
+          continue;
+        }
+        if (y == height - 1 && e.density < 0) {
+          // Float off the screen.
+          setParticle(x, y, null);
+        }
+
+        int curLastSet = lastSet[x][y];
+
         // Transmutations.
-        if (e.transmutationCount > 0 && lastSet[x][y] != iteration) {
+        if (e.transmutationCount > 0 && curLastSet != iteration) {
           for (int xo = -1; xo < 2; xo++) {
             for (int yo = -1; yo < 2; yo++) {
-              //if ((xo != 0 || yo != 0) && (xo == 0 || yo == 0)) {
               if (xo != 0 || yo != 0) {
-                if (x + xo >= 0 && x + xo < width && y + yo >= 0 & y + yo < height
-                    && elements[x + xo][y + yo] != null && lastSet[x + xo][y + yo] != iteration) {
-                  Element o = elementTable.maybeTransmutate(e, elements[x + xo][y + yo]);
-                  if (o != elements[x + xo][y + yo]) {
-                    setParticle(x + xo, y + yo, o);
+                int nx = x + xo;
+                int ny = y + yo;
+                if (nx >= 0 && nx < width && ny >= 0 & ny < height && lastSet[nx][ny] != iteration) {
+                  Element t = elements[nx][ny];
+                  if (t != null) {
+                    Element o = elementTable.maybeTransmutate(e, t);
+                    if (o != elements[nx][ny]) {
+                      setParticle(nx, ny, o);
+                    }
                   }
                 }
               }
@@ -257,7 +252,7 @@ public class SandBox implements Recordable {
         }
 
         // Decay.
-        if (lastSet[x][y] != iteration && e.decayProbability > 0 && random.nextFloat() < e.decayProbability) {
+        if (curLastSet != iteration && e.decayProbability > 0 && RNG.nextFloat() < e.decayProbability) {
           ages[x][y]++;
           if (ages[x][y] > e.lifetime) {
             setParticle(x, y, e.decayProducts == null ? null : e.decayProducts.pickProduct());
@@ -265,29 +260,32 @@ public class SandBox implements Recordable {
           }
         }
 
-        if (!e.mobile || lastSet[x][y] == iteration) {
+        if (!e.mobile || curLastSet == iteration) {
           continue;
         }
 
         // Horizontal movement.
-        if (random.nextFloat() < e.viscosity) {
-          int nx = x + (random.nextBoolean() ? 1 : -1); 
+        if (RNG.nextFloat() < e.viscosity) {
+          int nx = x + (RNG.nextBoolean() ? 1 : -1); 
           if (e.density > 0) {
             // Slide only if blocked below.
-            if (y - 1 >= 0 && (!isMobile(x, y - 1) || e.density <= effectiveDensity(x, y - 1))) {
-              float nd = effectiveDensity(nx, y);
-              if (isMobile(nx, y) && e.density > nd) {
-                if (nd == 0 || random.nextFloat() < e.density - nd) {
+
+            if (y - 1 >= 0) {
+              Element o = elements[x][y - 1];
+              if (o != null && (!o.mobile || e.density <= o.density)) {
+                Element p = (nx < 0 || nx >= width) ? null : elements[nx][y];
+                if (p == null || (p.mobile && e.density > p.density && RNG.nextFloat() < e.density - p.density)) {
                   swap(x, y, nx, y);
                 }
               }
             }
           } else if (e.density < 0) {
             // Slide only if blocked above.
-            if (y + 1 < height && (!isMobile(x, y + 1) || e.density >= effectiveDensity(x, y + 1))) {
-              float nd = effectiveDensity(nx, y);
-              if (isMobile(nx, y) && e.density < nd) {
-                if (nd == 0 || random.nextFloat() < nd - e.density) {
+            if (y + 1 < height) {
+              Element o = elements[x][y + 1];
+              if (o != null && (!o.mobile || e.density >= o.density)) {
+                Element p = (nx < 0 || nx >= width) ? null : elements[nx][y];
+                if (p == null || (p.mobile && e.density < p.density && RNG.nextFloat() < p.density - e.density)) {
                   swap(x, y, nx, y);
                 }
               }
@@ -295,17 +293,18 @@ public class SandBox implements Recordable {
           }
         }
 
-        // Vertical movement.
-        float nd = effectiveDensity(x, y - 1);
-        if (isMobile(x, y - 1) && e.density > nd) {
-          if (nd == 0 || random.nextFloat() < e.density - nd) {
+        Element o = elements[x][y - 1];
+        if ((o == null && e.density > 0) || (o != null && o.mobile && e.density > o.density)) {
+          if (o == null || o.density == 0 || RNG.nextFloat() < e.density - o.density) {
             swap(x, y, x, y - 1);
             lastFloated[x][y] = iteration;
           }
-        } else {
-          nd = effectiveDensity(x, y + 1);
-          if (lastFloated[x][y] != iteration && isMobile(x, y + 1) && e.density < nd) {
-            if (nd == 0 || random.nextFloat() < nd - e.density) {
+          continue;
+        }
+        if (lastFloated[x][y] != iteration) {
+          o = elements[x][y + 1];
+          if ((o == null && e.density < 0) || (o != null && o.mobile && e.density < o.density)) {
+            if (o == null || o.density == 0 || RNG.nextFloat() < o.density - e.density) {
               swap(x, y, x, y + 1);
               if (y + 1 < height) {
                 lastFloated[x][y + 1] = iteration;
@@ -386,17 +385,9 @@ public class SandBox implements Recordable {
 
     for (int y = 0; y < height; y++) {
       int start;
-      if (elements[0][y] == null) {
-        if (rightNeighbors[0][y] < 0) {
-          stream.writeShort(-1);
-          continue;
-        }
-        start = rightNeighbors[0][y];
-      } else {
-        start = 0;
-      }
+      for (start = 0; start < width && elements[start][y] == null; start++);
       stream.writeShort(start);
-      for (int x = start; x >= 0 && x < width; x = rightNeighbors[x][y]) {
+      for (int x = start; x < width; ) {
         if (elements[x][y] == null) {
           stream.writeByte((byte) -1);
         } else {
@@ -406,7 +397,12 @@ public class SandBox implements Recordable {
           stream.writeShort((short) (lastChange[x][y] - iteration));
           stream.writeShort((short) (lastFloated[x][y] - iteration));
         }
-        stream.writeShort((short) (rightNeighbors[x][y]));
+        do { ++x; } while (x < width && elements[x][y] == null);
+        if (x < width) {
+          stream.writeShort((short) x);
+        } else {
+          stream.writeShort(-1);
+        }
       }
     }
   }
