@@ -24,7 +24,7 @@ public class SandView extends LinearLayout
   private SurfaceView surface;
   private ZoomControls zoomControls;
   private SandBoxPresenter presenter;
-  private SandBoxRenderer.Camera camera;
+  private AbsRenderer.Camera camera;
   private PaletteView palette;
   private boolean penDown;
   private long penDownTime;
@@ -38,7 +38,7 @@ public class SandView extends LinearLayout
   public SandView(Context context, AttributeSet attrs) {
     super(context, attrs);
     scale = 1;
-    camera = new SandBoxRenderer.Camera(scale) {
+    camera = new AbsRenderer.Camera(scale) {
       public Point getViewSize() {
         return new Point(surface.getWidth(), surface.getHeight());
       }

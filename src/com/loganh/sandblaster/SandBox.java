@@ -7,8 +7,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Random;
 
-import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.graphics.Point;
 
 public class SandBox implements Recordable {
@@ -32,11 +30,6 @@ public class SandBox implements Recordable {
 
   // Points where particles are continuously emitted.
   public HashMap<Point, Element> sources;
-
-  // Rendering.
-
-  // TODO: move to renderer
-  public Bitmap bitmap;
 
   // Iterating.
   public boolean playing;
@@ -101,11 +94,6 @@ public class SandBox implements Recordable {
     lastChange = new int[width][height];
     lastFloated = new int[width][height];
     iteration = -1;
-    if (bitmap != null) {
-      bitmap.eraseColor(Color.BLACK);
-    } else {
-      bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-    }
     pixels = new int[width * height];
   }
 
@@ -175,7 +163,7 @@ public class SandBox implements Recordable {
         ages[x][y] = 0;
         lastChange[x][y] = iteration;
         int ty = height - y - 1;
-        pixels[ty * width + x] = element == null ? Color.BLACK : element.color;
+        pixels[ty * width + x] = element == null ? 0 : element.color;
       }
     }
   }

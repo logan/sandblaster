@@ -10,14 +10,14 @@ public class BaseSandBoxPresenter implements SandBoxPresenter {
   protected Set<EditListener> editListeners;
   protected Set<LoadListener> loadListeners;
   protected SandBox sandbox;
-  protected SandBoxRenderer renderer;
+  protected AbsRenderer renderer;
   protected UndoStack undoStack;
 
   public BaseSandBoxPresenter() {
     playbackListeners = new HashSet<PlaybackListener>();
     editListeners = new HashSet<EditListener>();
     loadListeners = new HashSet<LoadListener>();
-    renderer = new SandBoxRenderer();
+    renderer = new PixelRenderer();
     undoStack = new UndoStack();
   }
 
@@ -48,7 +48,7 @@ public class BaseSandBoxPresenter implements SandBoxPresenter {
     return loadListeners.remove(listener);
   }
 
-  public void setView(SurfaceView surface, SandBoxRenderer.Camera camera) {
+  public void setView(SurfaceView surface, AbsRenderer.Camera camera) {
     renderer.setSurfaceView(surface);
     renderer.setCamera(camera);
   }

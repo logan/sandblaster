@@ -126,8 +126,8 @@ public class Snapshot implements Comparable<Snapshot> {
   }
 
   public Bitmap render() {
-    SandBoxRenderer.setPixels(sandbox);
-    return sandbox.bitmap;
+    PixelRenderer renderer = new PixelRenderer();
+    return renderer.getBitmap(sandbox);
   }
 
   private Bitmap saveThumbnail(Context context) throws IOException {
