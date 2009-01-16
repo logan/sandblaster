@@ -17,8 +17,8 @@ public class BaseSandBoxPresenter implements SandBoxPresenter {
     playbackListeners = new HashSet<PlaybackListener>();
     editListeners = new HashSet<EditListener>();
     loadListeners = new HashSet<LoadListener>();
-    renderer = new PixelRenderer();
     undoStack = new UndoStack();
+    renderer = new PixelRenderer();
   }
 
   public void addPlaybackListener(PlaybackListener listener) {
@@ -48,9 +48,12 @@ public class BaseSandBoxPresenter implements SandBoxPresenter {
     return loadListeners.remove(listener);
   }
 
-  public void setView(SurfaceView surface, AbsRenderer.Camera camera) {
+  public void setView(SurfaceView surface) {
     renderer.setSurfaceView(surface);
-    renderer.setCamera(camera);
+  }
+
+  public AbsRenderer getRenderer() {
+    return renderer;
   }
 
   public UndoStack getUndoStack() {

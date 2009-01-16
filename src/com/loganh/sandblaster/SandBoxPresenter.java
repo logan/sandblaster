@@ -24,7 +24,8 @@ public interface SandBoxPresenter {
   public boolean removeEditListener(EditListener listener);
   public void addLoadListener(LoadListener listener);
   public boolean removeLoadListener(LoadListener listener);
-  public void setView(SurfaceView surface, AbsRenderer.Camera camera);
+  public void setView(SurfaceView surface);
+  public AbsRenderer getRenderer();
   public SandBox getSandBox();
   public UndoStack getUndoStack();
   public void setSandBox(SandBox sandbox);

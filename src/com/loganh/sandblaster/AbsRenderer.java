@@ -12,10 +12,19 @@ import android.view.SurfaceView;
 
 abstract public class AbsRenderer implements SurfaceHolder.Callback {
 
-  public static abstract class Camera {
+  public static class Camera {
 
     private float scale;
     private PointF offset;
+    private Point transformedOffset;
+    private int objectWidth;
+    private int objectHeight;
+    private int viewWidth;
+    private int viewHeight;
+
+    public Camera() {
+      this(1);
+    }
 
     public Camera(float scale) {
       this.scale = scale;
@@ -24,35 +33,52 @@ abstract public class AbsRenderer implements SurfaceHolder.Callback {
 
     public void setScale(float scale) {
       this.scale = scale;
+      update();
+      transformedOffset = getOffset();
     }
 
     public void pan(float x, float y) {
       offset.offset(x, y);
+      transformedOffset = getOffset();
     }
 
     public void recenter() {
       offset = new PointF(0, 0);
+      update();
     }
 
-    private Point getOffset() {
-      Point o = getObjectSize();
-      Point v = getViewSize();
-      return new Point(Math.round(offset.x + (v.x - o.x * scale) / 2), Math.round(offset.y + (v.y - o.y * scale) / 2));
+    private void update() {
+      transformedOffset = getOffset();
     }
 
-    public Point viewToObject(Point pt) {
-      Point o = getOffset();
-      return new Point(Math.round((pt.x - o.x) / scale), getObjectSize().y - Math.round((pt.y - o.y) / scale) - 1);
+    final private Point getOffset() {
+      return new Point(
+          Math.round(offset.x + (viewWidth - objectWidth * scale) / 2),
+          Math.round(offset.y + (viewHeight - objectHeight * scale) / 2));
     }
 
-    public Point objectToView(Point pt) {
-      Point result = getOffset();
-      result.offset(Math.round(pt.x * scale), Math.round((getObjectSize().y - pt.y - 1) * scale));
-      return result;
+    final public Point viewToObject(Point pt) {
+      Point o = transformedOffset;
+      return new Point(Math.round((pt.x - o.x) / scale), objectHeight - Math.round((pt.y - o.y) / scale) - 1);
     }
 
-    abstract public Point getObjectSize();
-    abstract public Point getViewSize();
+    final public Point objectToView(Point pt) {
+      Point o = transformedOffset;
+      return new Point(o.x + Math.round(pt.x * scale), o.y + Math.round((objectHeight - pt.y - 1) * scale));
+    }
+
+    public void setObjectDimensions(int width, int height) {
+      objectWidth = width;
+      objectHeight = height;
+      update();
+    }
+
+    public void setViewDimensions(int width, int height) {
+      viewWidth = width;
+      viewHeight = height;
+      update();
+    }
+
   }
 
   protected SurfaceView surfaceView;
@@ -64,6 +90,7 @@ abstract public class AbsRenderer implements SurfaceHolder.Callback {
 
   public AbsRenderer() {
     fpsCounter = new FrameRateCounter();
+    camera = new Camera();
   }
 
   public void setSurfaceView(SurfaceView surfaceView) {
@@ -71,21 +98,24 @@ abstract public class AbsRenderer implements SurfaceHolder.Callback {
     surfaceView.getHolder().addCallback(this);
   }
 
-  public void setCamera(Camera camera) {
-    this.camera = camera;
+  public Camera getCamera() {
+    return camera;
   }
 
   public void setSandBox(SandBox sandbox) {
     this.sandbox = sandbox;
+    camera.setObjectDimensions(sandbox.getWidth(), sandbox.getHeight());
   }
 
   public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+    camera.setViewDimensions(width, height);
   }
 
   public void surfaceDestroyed(SurfaceHolder holder) {
   }
 
   public void surfaceCreated(SurfaceHolder holder) {
+    camera.setViewDimensions(surfaceView.getWidth(), surfaceView.getHeight());
     draw();
   }
 

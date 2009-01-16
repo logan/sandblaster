@@ -38,23 +38,15 @@ public class SandView extends LinearLayout
   public SandView(Context context, AttributeSet attrs) {
     super(context, attrs);
     scale = 1;
-    camera = new AbsRenderer.Camera(scale) {
-      public Point getViewSize() {
-        return new Point(surface.getWidth(), surface.getHeight());
-      }
-
-      public Point getObjectSize() {
-        return new Point(presenter.getWidth(), presenter.getHeight());
-      }
-    };
   }
 
   public void setSandBoxPresenter(SandBoxPresenter presenter) {
     this.presenter = presenter;
+    camera = presenter.getRenderer().getCamera();
     presenter.addPlaybackListener(this);
     presenter.addLoadListener(this);
     if (surface != null) {
-      presenter.setView(surface, camera);
+      presenter.setView(surface);
     }
     palette.setSandBoxPresenter(presenter);
   }
@@ -64,7 +56,7 @@ public class SandView extends LinearLayout
     surface = (SurfaceView) findViewById(R.id.surface);
     zoomControls = (ZoomControls) findViewById(R.id.zoom);
     if (presenter != null) {
-      presenter.setView(surface, camera);
+      presenter.setView(surface);
     }
 
     playbackButton = (ImageButton) findViewById(R.id.playback);

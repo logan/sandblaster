@@ -17,6 +17,17 @@ public class SandBox implements Recordable {
   public final static int DEFAULT_HEIGHT = 160;
   public final static float SERIALIZATION_VERSION = 1.6f;
 
+  public final static int[][] NEIGHBORS = {
+    { 0, 1 },
+    { 1, 1 },
+    { 1, 0 },
+    { 1, -1 },
+    { 0, -1 },
+    { -1, -1 },
+    { -1, 0 },
+    { -1, 1 },
+  };
+
   // Particles.
 
   // Table of elements.
@@ -24,6 +35,8 @@ public class SandBox implements Recordable {
 
   // Element of the particle at (x, y).
   public Element[][] elements;
+
+  // Neighbors of the particle at (x, y). See the NEIGHBORS offset table above.
 
   // Age of the particle at (x, y).
   public int[][] ages;
@@ -220,19 +233,15 @@ public class SandBox implements Recordable {
 
         // Transmutations.
         if (e.transmutationCount > 0 && curLastSet != iteration) {
-          for (int xo = -1; xo < 2; xo++) {
-            for (int yo = -1; yo < 2; yo++) {
-              if (xo != 0 || yo != 0) {
-                int nx = x + xo;
-                int ny = y + yo;
-                if (nx >= 0 && nx < width && ny >= 0 & ny < height && lastSet[nx][ny] != iteration) {
-                  Element t = elements[nx][ny];
-                  if (t != null) {
-                    Element o = elementTable.maybeTransmutate(e, t);
-                    if (o != elements[nx][ny]) {
-                      setParticle(nx, ny, o);
-                    }
-                  }
+          for (int i = 0; i < NEIGHBORS.length; i++) {
+            int nx = x + NEIGHBORS[i][0];
+            int ny = y + NEIGHBORS[i][1];
+            if (nx >= 0 && nx < width && ny >= 0 & ny < height && lastSet[nx][ny] != iteration) {
+              Element t = elements[nx][ny];
+              if (t != null) {
+                Element o = elementTable.maybeTransmutate(e, t);
+                if (o != elements[nx][ny]) {
+                  setParticle(nx, ny, o);
                 }
               }
             }
