@@ -13,7 +13,33 @@
       android:layout_width="fill_parent"
       android:layout_height="256px">
 
-    <SurfaceView
+    <!-- top toolbar -->
+    <com.loganh.sandblaster.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_height="wrap_content"
+        android:layout_width="fill_parent">
+
+      <Button
+          android:id="@+id/tool_button"
+          android:layout_height="wrap_content"
+          android:layout_width="wrap_content"/>
+
+      <SeekBar
+          android:id="@+id/tool_size_slider"
+          android:layout_weight="1"
+          android:layout_height="wrap_content"
+          android:layout_width="wrap_content"/>
+
+      <ImageView
+          android:id="@+id/tool_demo"
+          android:width="40px"
+          android:height="40px"
+          android:layout_height="40px"
+          android:layout_width="40px"/>
+
+    </com.loganh.sandblaster.Toolbar>
+
+    <com.loganh.sandblaster.SandSurface
         android:id="@+id/surface"
         android:focusable="false"
         android:gravity="top"

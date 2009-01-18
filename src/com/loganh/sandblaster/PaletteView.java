@@ -29,6 +29,7 @@ public class PaletteView extends View implements SandBoxPresenter.LoadListener {
   public void setSandBoxPresenter(SandBoxPresenter presenter) {
     this.presenter = presenter;
     presenter.addLoadListener(this);
+    presenter.getPen().setElement(getElement());
   }
 
   public void onLoad() {
@@ -93,6 +94,7 @@ public class PaletteView extends View implements SandBoxPresenter.LoadListener {
     if (event.getAction() == MotionEvent.ACTION_DOWN) {
       int elemWidth = (int) (getWidth() / elements.length);
       selected = (int) (event.getX() / elemWidth);
+      presenter.getPen().setElement(getElement());
       Log.i("selected now {0}", selected);
       invalidate();
       return true;

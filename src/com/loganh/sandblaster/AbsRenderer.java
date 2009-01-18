@@ -74,6 +74,7 @@ abstract public class AbsRenderer implements SurfaceHolder.Callback {
     }
 
     public void setViewDimensions(int width, int height) {
+      Log.i("view dimensions: {0} x {1}", width, height);
       viewWidth = width;
       viewHeight = height;
       update();

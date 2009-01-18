@@ -50,4 +50,5 @@ public interface SandBoxPresenter {
   public void draw();
   public void pauseDriver();
   public void resumeDriver();
+  public Pen getPen();
 }

@@ -21,11 +21,12 @@ public class SandView extends LinearLayout
   // If a single location is touched for this long (in ms), make it permanent.
   static final private long PEN_STICK_THRESHOLD = 500;
 
-  private SurfaceView surface;
+  private SandSurface surface;
   private ZoomControls zoomControls;
   private SandBoxPresenter presenter;
   private AbsRenderer.Camera camera;
   private PaletteView palette;
+  private Toolbar toolbar;
   private boolean penDown;
   private long penDownTime;
   private Point lastPen;
@@ -43,17 +44,21 @@ public class SandView extends LinearLayout
   public void setSandBoxPresenter(SandBoxPresenter presenter) {
     this.presenter = presenter;
     camera = presenter.getRenderer().getCamera();
+    surface.setSandBoxPresenter(presenter);
+    surface.setCamera(camera);
     presenter.addPlaybackListener(this);
     presenter.addLoadListener(this);
     if (surface != null) {
       presenter.setView(surface);
     }
     palette.setSandBoxPresenter(presenter);
+    toolbar.setPen(presenter.getPen());
   }
 
   @Override
   protected void onFinishInflate() {
-    surface = (SurfaceView) findViewById(R.id.surface);
+    super.onFinishInflate();
+    surface = (SandSurface) findViewById(R.id.surface);
     zoomControls = (ZoomControls) findViewById(R.id.zoom);
     if (presenter != null) {
       presenter.setView(surface);
@@ -96,6 +101,8 @@ public class SandView extends LinearLayout
             undo();
           }
         });
+
+    toolbar = (Toolbar) findViewById(R.id.toolbar);
   }
 
   private void undo() {
@@ -172,47 +179,6 @@ public class SandView extends LinearLayout
 
   public boolean canZoomOut() {
     return scale / ZOOM_FACTOR >= MIN_SCALE;
-  }
-
-  @Override
-  public boolean onTouchEvent(MotionEvent event) {
-    Point eventPoint = new Point((int) event.getX(), (int) event.getY());
-    if (event.getAction() == MotionEvent.ACTION_DOWN) {
-      // TODO: pressure sensitivity
-      presenter.pauseDriver();
-      pushUndo();
-      penDown = true;
-      penDownTime = SystemClock.uptimeMillis();
-      lastPen = camera.viewToObject(eventPoint);
-      presenter.addSource(palette.getElement(), lastPen.x, lastPen.y);
-      presenter.setParticle(palette.getElement(), palette.radius, lastPen.x, lastPen.y);
-      presenter.draw();
-      presenter.resumeDriver();
-      return true;
-    } else if (penDown && event.getAction() == MotionEvent.ACTION_MOVE) {
-      Point newPen = camera.viewToObject(eventPoint);
-      if (newPen.equals(lastPen)) {
-        return true;
-      }
-      penDownTime = SystemClock.uptimeMillis();
-      presenter.pauseDriver();
-      presenter.removeSource(lastPen.x, lastPen.y);
-      presenter.line(palette.getElement(), palette.radius, lastPen.x, lastPen.y, newPen.x, newPen.y);
-      lastPen = newPen;
-      presenter.addSource(palette.getElement(), lastPen.x, lastPen.y);
-      presenter.draw();
-      presenter.resumeDriver();
-      return true;
-    } else if (penDown && event.getAction() == MotionEvent.ACTION_UP) {
-      if (SystemClock.uptimeMillis() - penDownTime < PEN_STICK_THRESHOLD) {
-        presenter.pauseDriver();
-        presenter.removeSource(lastPen.x, lastPen.y);
-        presenter.resumeDriver();
-      }
-      penDown = false;
-      return true;
-    }
-    return false;
   }
 
   @Override

@@ -15,19 +15,23 @@ public final class R {
         public static final int clear=0x7f020001;
     }
     public static final class id {
-        public static final int palette=0x7f050002;
-        public static final int picker_layout=0x7f050008;
-        public static final int playback=0x7f050003;
+        public static final int palette=0x7f050006;
+        public static final int picker_layout=0x7f05000c;
+        public static final int playback=0x7f050007;
         public static final int sand=0x7f050000;
-        public static final int save_button=0x7f05000b;
-        public static final int save_input=0x7f05000a;
-        public static final int save_line=0x7f050009;
-        public static final int snapshot_list=0x7f05000c;
-        public static final int snapshot_thumbnail=0x7f050006;
-        public static final int snapshot_title=0x7f050007;
-        public static final int surface=0x7f050001;
-        public static final int undo=0x7f050005;
-        public static final int zoom=0x7f050004;
+        public static final int save_button=0x7f05000f;
+        public static final int save_input=0x7f05000e;
+        public static final int save_line=0x7f05000d;
+        public static final int snapshot_list=0x7f050010;
+        public static final int snapshot_thumbnail=0x7f05000a;
+        public static final int snapshot_title=0x7f05000b;
+        public static final int surface=0x7f050005;
+        public static final int tool_button=0x7f050002;
+        public static final int tool_demo=0x7f050004;
+        public static final int tool_size_slider=0x7f050003;
+        public static final int toolbar=0x7f050001;
+        public static final int undo=0x7f050009;
+        public static final int zoom=0x7f050008;
     }
     public static final class layout {
         public static final int sand=0x7f030000;

@@ -12,6 +12,7 @@ public class BaseSandBoxPresenter implements SandBoxPresenter {
   protected SandBox sandbox;
   protected AbsRenderer renderer;
   protected UndoStack undoStack;
+  protected Pen pen;
 
   public BaseSandBoxPresenter() {
     playbackListeners = new HashSet<PlaybackListener>();
@@ -19,6 +20,7 @@ public class BaseSandBoxPresenter implements SandBoxPresenter {
     loadListeners = new HashSet<LoadListener>();
     undoStack = new UndoStack();
     renderer = new PixelRenderer();
+    pen = new Pen();
   }
 
   public void addPlaybackListener(PlaybackListener listener) {
@@ -187,6 +189,10 @@ public class BaseSandBoxPresenter implements SandBoxPresenter {
   }
 
   public void resumeDriver() {
+  }
+
+  public Pen getPen() {
+    return pen;
   }
 
 }
