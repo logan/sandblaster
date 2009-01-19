@@ -6,7 +6,6 @@
 
   <com.loganh.sandblaster.SandView 
       android:id="@+id/sand"
-      android:focusable="true"
       android:gravity="top"
       android:orientation="vertical"
       android:layout_weight="1"
@@ -16,20 +15,17 @@
     <!-- top toolbar -->
     <com.loganh.sandblaster.Toolbar
         android:id="@+id/toolbar"
-        android:focusable="false"
         android:layout_height="wrap_content"
         android:layout_width="fill_parent">
 
       <ImageButton
           android:id="@+id/tool_button"
-          android:focusable="false"
           android:layout_height="wrap_content"
           android:layout_width="wrap_content">
       </ImageButton>
 
       <SeekBar
           android:id="@+id/tool_size_slider"
-          android:focusable="false"
           android:layout_gravity="center"
           android:layout_weight="1"
           android:layout_height="wrap_content"
@@ -37,7 +33,6 @@
 
       <ImageView
           android:id="@+id/tool_demo"
-          android:focusable="false"
           android:width="40px"
           android:height="40px"
           android:layout_height="40px"
@@ -47,7 +42,6 @@
 
     <com.loganh.sandblaster.SandSurface
         android:id="@+id/surface"
-        android:focusable="false"
         android:gravity="top"
         android:keepScreenOn="true"
         android:layout_weight="1"
@@ -56,7 +50,6 @@
 
     <com.loganh.sandblaster.PaletteView
         android:id="@+id/palette"
-        android:focusable="false"
         android:gravity="bottom"
         android:layout_weight="0"
         android:layout_width="fill_parent"
@@ -64,14 +57,12 @@
         />
 
     <LinearLayout
-        android:focusable="false"
         android:layout_gravity="center_horizontal"
         android:layout_height="wrap_content"
         android:layout_width="wrap_content">
 
       <ImageButton
           android:id="@+id/playback"
-          android:focusable="false"
           android:layout_weight="0"
           android:layout_gravity="bottom"
           android:layout_height="56px"
@@ -79,7 +70,6 @@
 
       <ZoomControls
           android:id="@+id/zoom"
-          android:focusable="false"
           android:layout_weight="1"
           android:layout_gravity="center|bottom"
           android:layout_width="wrap_content"
@@ -88,7 +78,6 @@
       <ImageButton
           android:id="@+id/undo"
           android:src="@android:drawable/ic_menu_revert"
-          android:focusable="false"
           android:layout_weight="0"
           android:layout_gravity="bottom"
           android:layout_height="56px"
