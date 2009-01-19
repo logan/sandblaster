@@ -73,6 +73,7 @@ public class PaletteView extends View implements SandBoxPresenter.LoadListener {
       drawLabel(offset, canvas, rect, element);
       offset++;
     }
+    presenter.getPen().setElement(getElement());
   }
 
   private void drawLabel(int offset, Canvas canvas, Rect button, Element element) {
