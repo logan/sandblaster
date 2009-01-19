@@ -20,11 +20,12 @@
         android:layout_height="wrap_content"
         android:layout_width="fill_parent">
 
-      <Button
+      <ImageButton
           android:id="@+id/tool_button"
           android:focusable="false"
           android:layout_height="wrap_content"
-          android:layout_width="wrap_content"/>
+          android:layout_width="wrap_content">
+      </ImageButton>
 
       <SeekBar
           android:id="@+id/tool_size_slider"

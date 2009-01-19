@@ -5,7 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.util.AttributeSet;
 import android.view.View;
-import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
@@ -14,13 +14,22 @@ import android.widget.SeekBar;
 public class Toolbar extends LinearLayout implements Pen.ChangeListener {
 
   private ToolSelector toolSelector;
-  private Button toolButton;
+  private ImageButton toolButton;
   private SeekBar toolSizeSlider;
   private ImageView toolDemo;
   public Pen pen;
 
   public Toolbar(Context context, AttributeSet attrs) {
     super(context, attrs);
+  }
+
+  public int getIcon(Pen.Tool tool) {
+    switch (tool) {
+      case SPRAYER: return R.drawable.spray;
+      case LINE: return R.drawable.line;
+      case SPOUT: return R.drawable.spout;
+      default: return R.drawable.line;
+    }
   }
 
   public void setPen(Pen pen) {
@@ -32,7 +41,7 @@ public class Toolbar extends LinearLayout implements Pen.ChangeListener {
 
   @Override
   protected void onFinishInflate() {
-    toolButton = (Button) findViewById(R.id.tool_button);
+    toolButton = (ImageButton) findViewById(R.id.tool_button);
     toolSizeSlider = (SeekBar) findViewById(R.id.tool_size_slider);
     toolDemo = (ImageView) findViewById(R.id.tool_demo);
 
@@ -74,7 +83,7 @@ public class Toolbar extends LinearLayout implements Pen.ChangeListener {
 
   public void selectTool(Pen.Tool tool) {
     pen.selectTool(tool);
-    toolButton.setText(tool.toString());
+    toolButton.setImageResource(getIcon(tool));
     hideToolSelector();
     updateToolDemo();
   }

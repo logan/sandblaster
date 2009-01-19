@@ -3,18 +3,19 @@ package com.loganh.sandblaster;
 import java.util.EnumSet;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
-import android.widget.TextView;
+import android.widget.ImageButton;
 import android.widget.PopupWindow;
 
 
 public class ToolSelector extends PopupWindow {
 
-  final static public int TOOL_COLUMNS = 2;
+  final static public int TOOL_COLUMNS = 4;
 
   private Toolbar toolbar;
   private Context context;
@@ -33,8 +34,9 @@ public class ToolSelector extends PopupWindow {
     grid.setAdapter(new ToolAdapter());
     grid.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
     setContentView(grid);
-    setWidth(200);
-    setHeight(200);
+    setBackgroundDrawable(null);
+    setWidth(toolbar.getWidth());
+    setHeight(56);
   }
 
   public class ToolAdapter extends BaseAdapter {
@@ -46,8 +48,8 @@ public class ToolSelector extends PopupWindow {
         return null;
       }
 
-      TextView button = new TextView(context);
-      button.setText(tool.toString());
+      ImageButton button = new ImageButton(context);
+      button.setImageResource(toolbar.getIcon(tool));
       button.setLayoutParams(new GridView.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
       button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
