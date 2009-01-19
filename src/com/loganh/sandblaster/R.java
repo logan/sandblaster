@@ -14,8 +14,9 @@ public final class R {
         public static final int app_sandblaster=0x7f020000;
         public static final int clear=0x7f020001;
         public static final int line=0x7f020002;
-        public static final int spout=0x7f020003;
-        public static final int spray=0x7f020004;
+        public static final int pen=0x7f020003;
+        public static final int spout=0x7f020004;
+        public static final int spray=0x7f020005;
     }
     public static final class id {
         public static final int palette=0x7f050006;

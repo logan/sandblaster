@@ -26,10 +26,11 @@ public class Toolbar extends LinearLayout implements Pen.ChangeListener {
   public int getIcon(Pen.Tool tool) {
     switch (tool) {
       case SPRAYER: return R.drawable.spray;
+      case PEN: return R.drawable.pen;
       case LINE: return R.drawable.line;
       case SPOUT: return R.drawable.spout;
-      default: return R.drawable.line;
     }
+    return 0;
   }
 
   public void setPen(Pen pen) {
