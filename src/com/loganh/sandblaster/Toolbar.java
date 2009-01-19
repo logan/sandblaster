@@ -110,7 +110,7 @@ public class Toolbar extends LinearLayout implements Pen.ChangeListener {
       bitmap.setPixel(x, y, element == null ? Color.BLACK : element.color);
     }
 
-    public void setLineOverlay(Element element, int x1, int y1, int x2, int y2) {}
+    public void setLineOverlay(Pen pen, int x1, int y1, int x2, int y2) {}
     public void clearLineOverlay() {}
   }
 

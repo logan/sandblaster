@@ -16,6 +16,7 @@ public class SandBox implements Recordable {
   public final static int DEFAULT_WIDTH = 120;
   public final static int DEFAULT_HEIGHT = 160;
   public final static float SERIALIZATION_VERSION = 1.6f;
+  public final static float SOURCE_PROBABILITY = 0.4f;
 
   public final static int[][] NEIGHBORS = {
     { 0, 1 },
@@ -198,7 +199,9 @@ public class SandBox implements Recordable {
 
   synchronized public void update() {
     for (Point pt : sources.keySet()) {
-      setParticle(pt.x, pt.y, sources.get(pt));
+      if (RNG.nextFloat() < SOURCE_PROBABILITY) {
+        setParticle(pt.x, pt.y, sources.get(pt));
+      }
     }
 
     ++iteration;
@@ -266,24 +269,29 @@ public class SandBox implements Recordable {
           int nx = x + (RNG.nextBoolean() ? 1 : -1); 
           if (e.density > 0) {
             // Slide only if blocked below.
-
             if (y - 1 >= 0) {
               Element o = elements[x][y - 1];
               if (o != null && (!o.mobile || e.density <= o.density)) {
                 Element p = (nx < 0 || nx >= width) ? null : elements[nx][y];
                 if (p == null || (p.mobile && e.density > p.density && RNG.nextFloat() < e.density - p.density)) {
-                  swap(x, y, nx, y);
+                  if (nx < 0 || nx >= width || lastFloated[nx][y - 1] != iteration) {
+                    swap(x, y, nx, y);
+                    lastFloated[x][y] = iteration;
+                  }
                 }
               }
             }
           } else if (e.density < 0) {
             // Slide only if blocked above.
-            if (y + 1 < height) {
+            if (y + 1 < height && lastFloated[x][y] != iteration) {
               Element o = elements[x][y + 1];
               if (o != null && (!o.mobile || e.density >= o.density)) {
                 Element p = (nx < 0 || nx >= width) ? null : elements[nx][y];
                 if (p == null || (p.mobile && e.density < p.density && RNG.nextFloat() < p.density - e.density)) {
                   swap(x, y, nx, y);
+                  if (nx >= 0 && nx < width) {
+                    lastFloated[nx][y + 1] = iteration;
+                  }
                 }
               }
             }

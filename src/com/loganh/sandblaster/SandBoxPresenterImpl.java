@@ -196,8 +196,8 @@ public class SandBoxPresenterImpl extends BaseSandBoxPresenter {
   }
 
   @Override
-  public void setLineOverlay(Element element, int x1, int y1, int x2, int y2) {
-    renderer.setLineOverlay(element, x1, y1, x2, y2);
+  public void setLineOverlay(Pen pen, int x1, int y1, int x2, int y2) {
+    renderer.setLineOverlay(pen, x1, y1, x2, y2);
   }
 
   @Override

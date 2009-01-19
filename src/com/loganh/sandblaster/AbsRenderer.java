@@ -4,6 +4,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.PixelXorXfermode;
 import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.Rect;
@@ -91,6 +92,7 @@ abstract public class AbsRenderer implements SurfaceHolder.Callback {
   protected Bitmap bitmap;
   protected Element lineElement;
   protected Rect lineOverlay;
+  protected float lineRadius;
 
   public AbsRenderer() {
     fpsCounter = new FrameRateCounter();
@@ -123,8 +125,9 @@ abstract public class AbsRenderer implements SurfaceHolder.Callback {
     draw();
   }
 
-  public void setLineOverlay(Element element, int x1, int y1, int x2, int y2) {
-    lineElement = element;
+  public void setLineOverlay(Pen pen, int x1, int y1, int x2, int y2) {
+    lineElement = pen.getElement();
+    lineRadius = pen.getRadius();
     lineOverlay = new Rect(x1, y1, x2, y2);
   }
 
@@ -172,13 +175,11 @@ abstract public class AbsRenderer implements SurfaceHolder.Callback {
 
   protected void drawLineOverlay(Canvas canvas) {
     if (lineOverlay != null) {
-      //canvas.save();
       Paint paint = new Paint();
       paint.setColor(lineElement == null ? Color.WHITE : lineElement.color);
-      //Log.i("clipping: {0}", lineOverlay);
-      //canvas.clipRect(lineOverlay, Region.Op.XOR);
+      paint.setStrokeWidth(camera.scale * Math.max(1, lineRadius));
+      paint.setXfermode(new PixelXorXfermode(0));
       canvas.drawLine(lineOverlay.left, lineOverlay.top, lineOverlay.right, lineOverlay.bottom, paint);
-      //canvas.restore();
     }
   }
 

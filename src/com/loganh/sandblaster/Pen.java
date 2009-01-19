@@ -14,7 +14,7 @@ public class Pen {
 
   public interface Target {
     public void drawAt(Element element, int x, int y);
-    public void setLineOverlay(Element element, int x1, int x2, int y1, int y2);
+    public void setLineOverlay(Pen pen, int x1, int x2, int y1, int y2);
     public void clearLineOverlay();
   }
 
@@ -24,7 +24,7 @@ public class Pen {
 
   final static public Tool DEFAULT_TOOL = Tool.SPRAYER;
   final static public float MIN_RADIUS = 0.25f;
-  final static public float MAX_RADIUS = 4;
+  final static public float MAX_RADIUS = 2;
   final static public float SPRAY_PROBABILITY = 0.4f;
 
   final static int[][] circleMap = new int[(int) Math.ceil(MAX_RADIUS)][(int) Math.ceil(MAX_RADIUS)];
@@ -76,6 +76,10 @@ public class Pen {
     return selectedTool;
   }
 
+  public Element getElement() {
+    return element;
+  }
+
   public void setRadius(float radius) {
     this.radius = Math.max(MIN_RADIUS, Math.min(MAX_RADIUS, radius));
     notifyChangeListeners();
@@ -107,7 +111,7 @@ public class Pen {
     if (selectedTool == Tool.LINE) {
       if (down) {
         Log.i("line overlay: {0}, {1} - {2}, {3}", lastX, lastY, x, y);
-        target.setLineOverlay(element, lastX, lastY, x, y);
+        target.setLineOverlay(this, lastX, lastY, x, y);
       } else {
         press(target, x, y);
       }

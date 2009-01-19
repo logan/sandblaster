@@ -51,6 +51,6 @@ public interface SandBoxPresenter {
   public void pauseDriver();
   public void resumeDriver();
   public Pen getPen();
-  public void setLineOverlay(Element element, int x1, int y1, int x2, int y2);
+  public void setLineOverlay(Pen pen, int x1, int y1, int x2, int y2);
   public void clearLineOverlay();
 }
