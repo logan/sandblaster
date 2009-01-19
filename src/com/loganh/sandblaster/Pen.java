@@ -14,6 +14,8 @@ public class Pen {
 
   public interface Target {
     public void drawAt(Element element, int x, int y);
+    public void setLineOverlay(Element element, int x1, int x2, int y1, int y2);
+    public void clearLineOverlay();
   }
 
   public interface ChangeListener {
@@ -96,11 +98,20 @@ public class Pen {
     down = true;
     lastX = x;
     lastY = y;
-    drawAt(target, x, y);
+    if (selectedTool != Tool.LINE) {
+      drawAt(target, x, y);
+    }
   }
 
   public void drag(Target target, int x, int y) {
-    if (down) {
+    if (selectedTool == Tool.LINE) {
+      if (down) {
+        Log.i("line overlay: {0}, {1} - {2}, {3}", lastX, lastY, x, y);
+        target.setLineOverlay(element, lastX, lastY, x, y);
+      } else {
+        press(target, x, y);
+      }
+    } else if (down) {
       drawLine(target, lastX, lastY, x, y);
       lastX = x;
       lastY = y;
@@ -112,6 +123,11 @@ public class Pen {
   public void release(Target target, int x, int y) {
     if (down) {
       down = false;
+      if (selectedTool == Tool.LINE) {
+        target.clearLineOverlay();
+        Log.i("draw line: {0}, {1} - {2}, {3}", lastX, lastY, x, y);
+        drawLine(target, lastX, lastY, x, y);
+      }
     }
   }
 
@@ -119,20 +135,11 @@ public class Pen {
     if (selectedTool == null) {
       return;
     }
-
-    switch (selectedTool) {
-      case SPRAYER:
-      case PEN:
-      case SPOUT:
-        float prob = 1;
-        if (element != null && element.mobile && selectedTool != Tool.PEN) {
-          prob = SPRAY_PROBABILITY;
-        }
-        drawAround(target, x, y, radius, prob);
-        break;
-      case LINE:
-        break;
+    float prob = 1;
+    if (element != null && element.mobile && selectedTool != Tool.PEN) {
+      prob = SPRAY_PROBABILITY;
     }
+    drawAround(target, x, y, radius, prob);
   }
 
   public void drawLine(Target target, int x1, int y1, int x2, int y2) {

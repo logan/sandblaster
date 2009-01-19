@@ -7,6 +7,7 @@ import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.Rect;
+import android.graphics.Region;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
@@ -88,6 +89,8 @@ abstract public class AbsRenderer implements SurfaceHolder.Callback {
   protected FrameRateCounter fpsCounter;
   protected int lastFpsRight;
   protected Bitmap bitmap;
+  protected Element lineElement;
+  protected Rect lineOverlay;
 
   public AbsRenderer() {
     fpsCounter = new FrameRateCounter();
@@ -120,6 +123,15 @@ abstract public class AbsRenderer implements SurfaceHolder.Callback {
     draw();
   }
 
+  public void setLineOverlay(Element element, int x1, int y1, int x2, int y2) {
+    lineElement = element;
+    lineOverlay = new Rect(x1, y1, x2, y2);
+  }
+
+  public void clearLineOverlay() {
+    lineOverlay = null;
+  }
+
   public void draw() {
     if (sandbox == null || surfaceView == null || surfaceView.getHolder() == null) {
       return;
@@ -131,6 +143,7 @@ abstract public class AbsRenderer implements SurfaceHolder.Callback {
         synchronized (canvas) {
           synchronized (sandbox) {
             draw(canvas);
+            drawLineOverlay(canvas);
             fpsCounter.update();
             if (SandActivity.DEBUG) {
               drawFps(canvas);
@@ -155,6 +168,18 @@ abstract public class AbsRenderer implements SurfaceHolder.Callback {
     lastFpsRight = bounds.right;
     paint.setColor(Color.WHITE);
     canvas.drawText(fps, 0, -bounds.top, paint);
+  }
+
+  protected void drawLineOverlay(Canvas canvas) {
+    if (lineOverlay != null) {
+      //canvas.save();
+      Paint paint = new Paint();
+      paint.setColor(lineElement == null ? Color.WHITE : lineElement.color);
+      //Log.i("clipping: {0}", lineOverlay);
+      //canvas.clipRect(lineOverlay, Region.Op.XOR);
+      canvas.drawLine(lineOverlay.left, lineOverlay.top, lineOverlay.right, lineOverlay.bottom, paint);
+      //canvas.restore();
+    }
   }
 
   abstract protected void draw(Canvas canvas);

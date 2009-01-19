@@ -34,6 +34,7 @@ public class SandSurface extends SurfaceView {
     Pen pen = presenter.getPen();
     if (event.getAction() == MotionEvent.ACTION_DOWN) {
       presenter.pauseDriver();
+      presenter.getUndoStack().push(presenter.getSandBox());
       Point p = getTouchPoint(event);
       pen.press(drawer, p.x, p.y);
       presenter.draw();
@@ -74,6 +75,16 @@ public class SandSurface extends SurfaceView {
         presenter.removeSource(x, y);
         presenter.getSandBox().setParticle(x, y, element);
       }
+    }
+
+    public void setLineOverlay(Element element, int x1, int y1, int x2, int y2) {
+      Point p1 = camera.objectToView(new Point(x1, y1));
+      Point p2 = camera.objectToView(new Point(x2, y2));
+      presenter.setLineOverlay(element, p1.x, p1.y, p2.x, p2.y);
+    }
+
+    public void clearLineOverlay() {
+      presenter.clearLineOverlay();
     }
   }
 

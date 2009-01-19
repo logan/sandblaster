@@ -16,22 +16,27 @@
     <!-- top toolbar -->
     <com.loganh.sandblaster.Toolbar
         android:id="@+id/toolbar"
+        android:focusable="false"
         android:layout_height="wrap_content"
         android:layout_width="fill_parent">
 
       <Button
           android:id="@+id/tool_button"
+          android:focusable="false"
           android:layout_height="wrap_content"
           android:layout_width="wrap_content"/>
 
       <SeekBar
           android:id="@+id/tool_size_slider"
+          android:focusable="false"
+          android:layout_gravity="center"
           android:layout_weight="1"
           android:layout_height="wrap_content"
           android:layout_width="wrap_content"/>
 
       <ImageView
           android:id="@+id/tool_demo"
+          android:focusable="false"
           android:width="40px"
           android:height="40px"
           android:layout_height="40px"
@@ -58,12 +63,14 @@
         />
 
     <LinearLayout
+        android:focusable="false"
         android:layout_gravity="center_horizontal"
         android:layout_height="wrap_content"
         android:layout_width="wrap_content">
 
       <ImageButton
           android:id="@+id/playback"
+          android:focusable="false"
           android:layout_weight="0"
           android:layout_gravity="bottom"
           android:layout_height="56px"
@@ -80,6 +87,7 @@
       <ImageButton
           android:id="@+id/undo"
           android:src="@android:drawable/ic_menu_revert"
+          android:focusable="false"
           android:layout_weight="0"
           android:layout_gravity="bottom"
           android:layout_height="56px"
