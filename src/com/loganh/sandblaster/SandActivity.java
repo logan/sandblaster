@@ -5,6 +5,7 @@ import java.io.*;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -70,6 +71,11 @@ public class SandActivity extends Activity {
     Log.i("pause");
     presenter.pause();
     appRunning = false;
+  }
+
+  @Override
+  public void onConfigurationChanged(Configuration newConfig) {
+    super.onConfigurationChanged(newConfig);
   }
 
   @Override
