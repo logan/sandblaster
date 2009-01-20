@@ -110,7 +110,6 @@ public class Pen {
   public void drag(Target target, int x, int y) {
     if (selectedTool == Tool.LINE) {
       if (down) {
-        Log.i("line overlay: {0}, {1} - {2}, {3}", lastX, lastY, x, y);
         target.setLineOverlay(this, lastX, lastY, x, y);
       } else {
         press(target, x, y);
@@ -129,7 +128,6 @@ public class Pen {
       down = false;
       if (selectedTool == Tool.LINE) {
         target.clearLineOverlay();
-        Log.i("draw line: {0}, {1} - {2}, {3}", lastX, lastY, x, y);
         drawLine(target, lastX, lastY, x, y);
       }
     }
@@ -150,11 +148,13 @@ public class Pen {
     int dx = x1 - x2;
     int dy = y1 - y2;
     int d = Math.max(Math.abs(dx), Math.abs(dy));
-    for (int i = 0; i <= d; i++) {
+    for (int i = 0; i < d; i++) {
       int x = Math.round(x2 + ((float) i / d) * dx);
       int y = Math.round(y2 + ((float) i / d) * dy);
       drawAt(target, x, y);
     }
+    drawAt(target, x1, y1);
+    drawAt(target, x2, y2);
   }
 
   private void drawAround(Target target, int x, int y, float r, float prob) {

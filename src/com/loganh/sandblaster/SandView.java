@@ -40,7 +40,6 @@ public class SandView extends LinearLayout
     super(context, attrs);
     setDescendantFocusability(FOCUS_BLOCK_DESCENDANTS);
     setFocusable(true);
-    setFocusableInTouchMode(true);
     requestFocus();
     scale = 1;
   }
