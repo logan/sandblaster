@@ -41,7 +41,6 @@ public class ToolSelector extends PopupWindow {
 
   public class ToolAdapter extends BaseAdapter {
 
-    @Override
     public View getView(int position, View convertView, ViewGroup parent) {
       final Pen.Tool tool = (Pen.Tool) getItem(position);
       if (tool == null) {
@@ -59,12 +58,10 @@ public class ToolSelector extends PopupWindow {
       return button;
     }
 
-    @Override
     public final int getCount() {
       return EnumSet.allOf(Pen.Tool.class).size();
     }
 
-    @Override
     public final Object getItem(int position) {
       for (Pen.Tool tool : EnumSet.allOf(Pen.Tool.class)) {
         if (tool.ordinal() == position) {
@@ -74,7 +71,6 @@ public class ToolSelector extends PopupWindow {
       return null;
     }
 
-    @Override
     public final long getItemId(int position) {
       return position;
     }
