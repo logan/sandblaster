@@ -1,0 +1,6 @@
+\..*\.sw.
+redditbot.db
+.*\.orig
+.*\.rej
+bin/.*
+libs/.*
