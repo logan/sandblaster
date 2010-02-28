@@ -9,54 +9,7 @@ import java.util.Random;
 
 import android.graphics.Point;
 
-public class SandBox implements Recordable {
-
-  int[] pixels;
-
-  public final static int DEFAULT_WIDTH = 120;
-  public final static int DEFAULT_HEIGHT = 160;
-  public final static float SERIALIZATION_VERSION = 1.6f;
-  public final static float SOURCE_PROBABILITY = 0.4f;
-
-  public final static int[][] NEIGHBORS = {
-    { 0, 1 },
-    { 1, 1 },
-    { 1, 0 },
-    { 1, -1 },
-    { 0, -1 },
-    { -1, -1 },
-    { -1, 0 },
-    { -1, 1 },
-  };
-
-  // Particles.
-
-  // Table of elements.
-  public ElementTable elementTable;
-
-  // Element of the particle at (x, y).
-  public Element[][] elements;
-
-  // Neighbors of the particle at (x, y). See the NEIGHBORS offset table above.
-
-  // Age of the particle at (x, y).
-  public int[][] ages;
-
-  // Points where particles are continuously emitted.
-  public HashMap<Point, Element> sources;
-
-  // Iterating.
-  public boolean playing;
-
-  // Keep track of which iteration certain events occurred in for each particle.
-  int iteration;
-  int[][] lastSet;
-  int[][] lastChange;
-  int[][] lastFloated;
-
-  // Dimensions.
-  private int width;
-  private int height;
+public class SandBox extends BaseSandBox implements Recordable {
 
   final static class RNG {
     final static private int SIZE = 1024;
@@ -91,71 +44,11 @@ public class SandBox implements Recordable {
   }
 
   public SandBox() {
-    this(DEFAULT_WIDTH, DEFAULT_HEIGHT);
+    super(DEFAULT_WIDTH, DEFAULT_HEIGHT);
   }
 
   public SandBox(int width, int height) {
-    this.width = width;
-    this.height = height;
-    clear();
-  }
-
-  synchronized public void clear() {
-    sources = new HashMap<Point, Element>();
-    elements = new Element[width][height];
-    ages = new int[width][height];
-    lastSet = new int[width][height];
-    lastChange = new int[width][height];
-    lastFloated = new int[width][height];
-    iteration = -1;
-    pixels = new int[width * height];
-  }
-
-  public int getWidth() {
-    return width;
-  }
-
-  public int getHeight() {
-    return height;
-  }
-
-  synchronized public void addSource(Element element, int x, int y) {
-    if (element == null) {
-      removeSource(x, y);
-      return;
-    }
-    if (x >= 0 && y >= 0 && x < width && y < height) {
-      sources.put(new Point(x, y), element);
-    }
-  }
-
-  synchronized public void removeSource(int x, int y) {
-    sources.remove(new Point(x, y));
-  }
-
-  synchronized public Source[] getSources() {
-    Source[] result = new Source[sources.size()];
-    int i = 0;
-    for (Point pt : sources.keySet()) {
-      result[i++] = new Source(pt.x, pt.y, sources.get(pt));
-    }
-    return result;
-  }
-
-  class Source {
-    public int x;
-    public int y;
-    public Element element;
-
-    public Source(int x, int y, Element element) {
-      this.x = x;
-      this.y = y;
-      this.element = element;
-    }
-  }
-
-  public void setParticle(int x, int y, Element element, int radius) {
-    setParticle(x, y, element, radius, 0.4f);
+    super(width, height);
   }
 
   public void setParticle(int x, int y, Element element, int radius, float prob) {

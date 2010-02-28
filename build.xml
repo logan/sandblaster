@@ -25,7 +25,8 @@
     <!-- No user servicable parts below. -->
 
     <property name="android-tools" value="${android-folder}/tools" />
-    <property name="sdk-folder" value="${android-folder}/platforms/android-1.5" />
+    <property name="sdk-platform" value="2.1" />
+    <property name="sdk-folder" value="${android-folder}/platforms/android-${sdk-platform}" />
     <property name="android-platform-tools" value="${sdk-folder}/tools" />
     <property name="android-framework" value="${android-platform-tools}/lib/framework.aidl" />
 

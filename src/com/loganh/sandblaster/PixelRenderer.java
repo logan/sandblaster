@@ -39,7 +39,7 @@ public class PixelRenderer extends AbsRenderer {
       if (bitmap == null || bitmap.getWidth() != w || bitmap.getHeight() != h) {
         bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
       }
-      bitmap.setPixels(sandbox.pixels, 0, w, 0, 0, w, h);
+      bitmap.setPixels(sandbox.getPixels(), 0, w, 0, 0, w, h);
     }
   }
 

@@ -23,15 +23,20 @@ public class UndoStack implements Recordable {
   }
 
   public boolean push(SandBox sandbox) {
+    return true;
+    /*
     try {
       return push(sandbox.packToBytes());
     } catch (IOException ex) {
       Log.e("failed to serialize sandbox", ex);
       return false;
     }
+    */
   }
 
   public boolean push(byte[] bytes) {
+    return true;
+    /*
     stack.add(bytes);
     totalBytes += bytes.length;
     while (totalBytes > maxBytes) {
@@ -39,9 +44,12 @@ public class UndoStack implements Recordable {
     }
     Log.i("stack size: {0} items in {1} bytes", stack.size(), totalBytes);
     return !isEmpty();
+    */
   }
 
   public SandBox pop() {
+    return null;
+    /*
     if (stack.isEmpty()) {
       return null;
     }
@@ -55,6 +63,7 @@ public class UndoStack implements Recordable {
     } finally {
       Log.i("stack size: {0} items in {1} bytes", stack.size(), totalBytes);
     }
+    */
   }
 
   public void clear() {

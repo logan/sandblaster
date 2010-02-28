@@ -20,6 +20,21 @@ public class SandBoxPresenterImpl extends BaseSandBoxPresenter {
   private SandBoxTimerTask task;
   private float fps;
 
+  // TODO: ndk hack!
+  private ElementTable elementTable;
+  @Override
+  public ElementTable getElementTable() {
+    // TODO: ndk hack!
+    if (elementTable == null) {
+      try {
+        elementTable = XmlSnapshot.loadDefaultElementTable(context);
+      } catch (Exception ex) {
+        return null;
+      }
+    }
+    return elementTable;
+  }
+
   public SandBoxPresenterImpl(AssetManager assets, Context context, float fps) {
     super();
     this.assets = assets;

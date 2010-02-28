@@ -20,6 +20,7 @@ abstract public class XmlSnapshot {
   // TODO: put a schema somewhere
   static public final String NS = "http://sandblaster.googlecode.com/svn/trunk/";
 
+  /*
   static private void writeElementProductSet(Element.ProductSet productSet, XmlSerializer serializer) throws IOException {
     for (int i = 0; i < productSet.products.length; i++) {
       serializer.startTag(NS, "element-product")
@@ -159,8 +160,11 @@ abstract public class XmlSnapshot {
       Log.e("copy failed");
     }
   }
+  */
 
-  static private ElementTable loadDefaultElementTable(Context context) throws IOException, XmlPullParserException {
+  // TODO: ndk hack!
+  //static private ElementTable loadDefaultElementTable(Context context) throws IOException, XmlPullParserException {
+  static ElementTable loadDefaultElementTable(Context context) throws IOException, XmlPullParserException {
     InputStream stream = context.getAssets().open("snapshot_new.xml");
     SandBox sandbox = XmlSnapshot.read(new BufferedReader(new InputStreamReader(stream)), context);
     return sandbox.elementTable;

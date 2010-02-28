@@ -41,4 +41,5 @@
       android:name="android.test.InstrumentationTestRunner"
       android:targetPackage="com.loganh.sandblaster"
       android:label="Sandblaster tests."/>
+  <uses-sdk android:minSdkVersion="3" />
 </manifest> 

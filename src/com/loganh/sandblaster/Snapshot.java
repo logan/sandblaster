@@ -89,6 +89,9 @@ public class Snapshot implements Comparable<Snapshot> {
   }
 
   public void load(Context context) throws IOException {
+    sandbox = new NativeSandBox(200, 200);
+    undoStack = new UndoStack();
+    /*
     InputStream stream = new BufferedInputStream(context.openFileInput(name + SNAPSHOT_EXTENSION), BUFFER_SIZE);
     if (isXml(stream)) {
       Log.i("found xml snapshot");
@@ -109,6 +112,7 @@ public class Snapshot implements Comparable<Snapshot> {
       undoStack = UndoStack.read(dataStream);
       Log.i("Loaded snapshot from {0}", name);
     }
+    */
   }
 
   public void save(Context context) throws IOException {
