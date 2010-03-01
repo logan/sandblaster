@@ -5,14 +5,14 @@ public class NativeSandBox extends SandBox {
     super(w, h);
   }
 
-  native int[] getPixels();
-  native public void clear();
-  native public void setParticle(int x, int y, Element element, int radius);
-  native public void setParticle(int x, int y, Element element, int radius, float prob);
-  native public void setParticle(int x, int y, Element element);
-  native public void line(Element element, int radius, int x1, int y1, int x2, int y2);
-  native public void line(Element element, int x1, int y1, int x2, int y2);
-  native public void update();
+  native synchronized int[] getPixels();
+  native synchronized public void clear();
+  native synchronized public void setParticle(int x, int y, Element element, int radius);
+  native synchronized public void setParticle(int x, int y, Element element, int radius, float prob);
+  native synchronized public void setParticle(int x, int y, Element element);
+  native synchronized public void line(Element element, int radius, int x1, int y1, int x2, int y2);
+  native synchronized public void line(Element element, int x1, int y1, int x2, int y2);
+  native synchronized public void update();
 
   static {
     System.loadLibrary("sandblaster");

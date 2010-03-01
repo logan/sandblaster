@@ -4,7 +4,7 @@
 
 #include <android/log.h>
 
-#define LOG(...) __android_log_write(ANDROID_LOG_INFO, "com.loganh.sandblaster", __VA_ARGS__)
+#define LOG(...) __android_log_print(ANDROID_LOG_INFO, "com.loganh.sandblaster", __VA_ARGS__)
 
 extern JavaVM* jvm;
 
@@ -21,11 +21,12 @@ struct RNG {
   }
 
   jboolean NextBoolean() {
-    return (random() & (1 << 10)) != 0;
+    return random() & 1;
   }
 
   jfloat NextFloat() {
-    return (float) random() / RAND_MAX;
+    jfloat result = random() / (float(0x7fffffff) + 1);
+    return result;
   }
 };
 
@@ -147,7 +148,7 @@ static Element **defaultElements;
 
 static void initDefaultElements() {
   if (!defaultElements) {
-    defaultElements = new Element*[3];
+    defaultElements = new Element*[4];
     Element* e = defaultElements[0] = new Element();
     e->color = 0xffaaaaaa;  // wall grey
     e = defaultElements[1] = new Element();
@@ -180,8 +181,10 @@ struct Point {
   jint last_floated;
 
   Point& operator=(Element* element) {
+    if (element != this->element) {
+      age = 0;
+    }
     this->element = element;
-    age = 0;
     return *this;
   }
 };
@@ -269,6 +272,9 @@ struct Sandbox {
   }
 
   Element* GetElement(JNIEnv* env, jobject jelement) {
+    if (!jelement) {
+      return NULL;
+    }
     // TODO: ndk hack!
     static jfieldID colorFid;
     if (!colorFid) {
@@ -281,7 +287,7 @@ struct Sandbox {
         return *e;
       }
     }
-    return 0;
+    return NULL;
   }
 
   void SetParticle(jint x, jint y, Element* elem) {
@@ -322,14 +328,22 @@ struct Sandbox {
     } else if (x2 < 0 || y2 < 0 || x2 >= w || y2 >= h) {
       SetParticle(x1, y1, NULL);
     } else {
-      Point p1 = points[x1][y1];
-      points[x1][y1] = points[x2][y2];
-      points[x2][y2] = p1;
+      Point& p1 = points[x1][y1];
+      Point& p2 = points[x2][y2];
+      Element* elem = p1.element;
+      jint left_age = p1.age;
+      jint right_age = p2.age;
+      SetParticle(x1, y1, p2.element);
+      SetParticle(x2, y2, elem);
+      p1.age = right_age;
+      p2.age = left_age;
     }
   }
 
   void Iterate() {
     // TODO: sources
+
+    ++iteration;
 
     for (jint y = 0; y < h; y++) {
       jint start = 0;
@@ -453,14 +467,14 @@ struct Sandbox {
   }
 
   jintArray GetPixels(JNIEnv* env) {
-    jint *pixelData = env->GetIntArrayElements(pixels, NULL);
-    jint *p = pixelData;
+    jint* pixelData = (jint*) env->GetPrimitiveArrayCritical(pixels, NULL);
+    jint* p = pixelData;
     for (jint y = h; y--; ) {
       for (jint x = 0; x < w; x++, p++) {
         *p = points[x][y].element ? points[x][y].element->color : 0xff000000;
       }
     }
-    env->ReleaseIntArrayElements(pixels, pixelData, 0);
+    env->ReleasePrimitiveArrayCritical(pixels, pixelData, 0);
     return (jintArray) env->NewLocalRef(pixels);
   }
 };
@@ -529,7 +543,9 @@ void Java_com_loganh_sandblaster_NativeSandBox_line__Lcom_loganh_sandblaster_Ele
  * Signature: ()V
  */
 void Java_com_loganh_sandblaster_NativeSandBox_update(JNIEnv* env, jobject thiz) {
+  LOG("Iterate start");
   Sandbox::Get(env, thiz)->Iterate();
+  LOG("Iterate return");
 }
 
 
@@ -549,7 +565,10 @@ void Java_com_loganh_sandblaster_NativeSandBox_clear(JNIEnv* env, jobject thiz) 
  * Signature: ()[I
  */
 jintArray Java_com_loganh_sandblaster_NativeSandBox_getPixels(JNIEnv* env, jobject thiz) {
-  return Sandbox::Get(env, thiz)->GetPixels(env);
+  LOG("GetPixels start");
+  jintArray pixels = Sandbox::Get(env, thiz)->GetPixels(env);
+  LOG("GetPixels return");
+  return pixels;
 }
 
 jint JNI_OnLoad(JavaVM* jvm, void* res) {
