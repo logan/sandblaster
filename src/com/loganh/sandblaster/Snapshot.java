@@ -89,7 +89,14 @@ public class Snapshot implements Comparable<Snapshot> {
   }
 
   public void load(Context context) throws IOException {
-    sandbox = new NativeSandBox(200, 200);
+    InputStream stream = context.openFileInput(name + SNAPSHOT_EXTENSION);
+    int size = stream.available();
+    Log.i("{0} bytes available", size);
+    byte[] data = new byte[size];
+    stream.read(data);
+    Log.i("read data");
+    sandbox = NativeSandBox.read(data);
+    Log.i("imported data");
     undoStack = new UndoStack();
     /*
     InputStream stream = new BufferedInputStream(context.openFileInput(name + SNAPSHOT_EXTENSION), BUFFER_SIZE);

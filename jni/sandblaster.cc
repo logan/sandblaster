@@ -1,5 +1,6 @@
 #include <jni.h>
 #include <stdlib.h>
+#include <sys/endian.h>
 #include <time.h>
 
 #include <android/log.h>
@@ -7,6 +8,79 @@
 #define LOG(...) __android_log_print(ANDROID_LOG_INFO, "com.loganh.sandblaster", __VA_ARGS__)
 
 extern JavaVM* jvm;
+
+static int NEIGHBORS[][2] = {
+  { 0, 1 },
+  { 1, 1 },
+  { 1, 0 },
+  { 1, -1 },
+  { 0, -1 },
+  { -1, -1 },
+  { -1, 0 },
+  { -1, 1 },
+};
+
+struct DataStream {
+  JNIEnv* env;
+  jbyteArray byte_array;
+  char* data;
+  jint pos;
+  jint size;
+
+  DataStream(JNIEnv* env, jbyteArray byte_array) {
+    this->env = env;
+    this->byte_array = byte_array;
+    pos = 0;
+    size = env->GetArrayLength(byte_array);
+    this->data = (char*) env->GetPrimitiveArrayCritical(byte_array, NULL);
+  }
+
+  ~DataStream() {
+    this->env->ReleasePrimitiveArrayCritical(byte_array, data, NULL);
+  }
+
+  void Skip(jint n) {
+    pos += n;
+  }
+
+  jbyte ReadJbyte() {
+    if (pos + 1 > size) {
+      // TODO: exception
+      return 0;
+    }
+    return data[pos++];
+  }
+
+  jboolean ReadJboolean() {
+    return (jboolean) ReadJbyte();
+  }
+
+  jshort ReadJshort() {
+    if (pos + 2 > size) {
+      // TODO: exception
+      return 0;
+    }
+    jchar result = betoh16(*(jchar*) (data + pos));
+    pos += 2;
+    return result;
+  }
+
+  jint ReadJint() {
+    if (pos + 4 > size) {
+      // TODO: exception
+      LOG("EOF on ReadJint");
+      return 0;
+    }
+    jint result = betoh32(*(jint*) (data + pos));
+    pos += 4;
+    return result;
+  }
+
+  jfloat ReadJfloat() {
+    jint i = ReadJint();
+    return *(jfloat *) &i;
+  }
+};
 
 struct RNG {
   static jboolean rng_initialized;
@@ -121,56 +195,209 @@ struct Grid {
 
 
 struct Element;
+struct ElementTable;
 
 struct ProductSet {
   jint size;
-  Element* products;
+  Element** products;
   jfloat* weights;
   jfloat total_weight;
+
+  ProductSet() : size(0) {}
+
+  ~ProductSet();
+
+  ProductSet& operator=(const ProductSet& ps);
+  void Read(DataStream* stream, ElementTable* table);
+  Element* PickProduct();
+};
+
+
+struct Transmutation {
+  jfloat probability;
+  Element* target;
+  ProductSet products;
+
+  Transmutation() : probability(0), target(NULL) {}
+
+  Transmutation& operator=(const Transmutation& t) {
+    probability = t.probability;
+    target = t.target;
+    products = t.products;
+    return *this;
+  }
+
+  void Read(DataStream* stream, ElementTable* table);
 };
 
 
 struct Element {
+  jbyte ordinal;
+  jshort id;
   jint color;
   jboolean mobile;
   jfloat density;
   jfloat viscosity;
   jint lifetime;
-  jint transmutationCount;
+  jint transmutation_count;
   jfloat decay_probability;
-  ProductSet decay_product;
+  ProductSet decay_products;
+
+  void Read(DataStream* stream) {
+    // Ignore the name.
+    jshort n = stream->ReadJshort();
+    stream->Skip(n);
+
+    id = stream->ReadJshort();
+    color = stream->ReadJint();
+
+    // Skip drawable
+    stream->ReadJboolean();
+
+    mobile = stream->ReadJboolean();
+    density = stream->ReadJfloat();
+    viscosity = stream->ReadJfloat();
+    decay_probability = stream->ReadJfloat();
+    lifetime = stream->ReadJint();
+  }
 };
 
 
-// TODO: ndk hack!
-// hard-code the elements
-static Element **defaultElements;
+struct ElementTable {
+  jint size;
+  Element* elements;
+  Transmutation* transmutations;
 
-static void initDefaultElements() {
-  if (!defaultElements) {
-    defaultElements = new Element*[4];
-    Element* e = defaultElements[0] = new Element();
-    e->color = 0xffaaaaaa;  // wall grey
-    e = defaultElements[1] = new Element();
-    e->color = 0xffffff00;  // sand yellow
-    e->mobile = true;
-    e->density = 0.5;
-    e->viscosity = 0.4;
-    e = defaultElements[2] = new Element();
-    e->color = 0xff0000ff;  // water blue
-    e->mobile = true;
-    e->density = 0.4;
-    e->viscosity = 1.0;
-    defaultElements[3] = NULL;
+  ~ElementTable() {
+    if (size) {
+      delete[] elements;
+      delete[] transmutations;
+    }
+  }
+
+  Element* GetElementById(jchar id) {
+    for (jint i = 0; i < size; i++) {
+      if (elements[i].id == id) {
+        return elements + i;
+      }
+    }
+    return NULL;
+  }
+
+  Element* GetElementByOrdinal(int ord) {
+    return (ord >= 0 && ord < size) ? elements + ord : NULL;
+  }
+
+  void Read(DataStream* stream) {
+    size = stream->ReadJbyte();
+    if (elements) { delete[] elements; }
+    if (transmutations) { delete[] transmutations; }
+    elements = new Element[size];
+    transmutations = new Transmutation[size * size];
+    for (jint i = 0; i < size; i++) {
+      Element* elem = elements + i;
+      elem->ordinal = i;
+      elem->transmutation_count = 0;
+      elem->Read(stream);
+    }
+
+    // Decay products
+    for (jint i = 0; i < size; i++) {
+      elements[i].decay_products.Read(stream, this);
+    }
+
+    // Transmutations
+    jbyte ord = stream->ReadJbyte();
+    Element* agent = GetElementByOrdinal(ord);
+    while (agent) {
+      agent->transmutation_count++;
+      Transmutation t;
+      t.Read(stream, this);
+      transmutations[ord * size + t.target->ordinal] = t;
+      ord = stream->ReadJbyte();
+      agent = GetElementByOrdinal(ord);
+    }
+  }
+
+  Element* MaybeTransmutate(Element* agent, Element* target) {
+    if (!agent || !target) {
+      return target;
+    }
+    Transmutation& t = transmutations[agent->ordinal * size + target->ordinal];
+    if (t.probability <= 0) {
+      return target;
+    }
+    RNG rng;
+    if (rng.NextFloat() < t.probability) {
+      return t.products.PickProduct();
+    }
+    return target;
+  }
+};
+
+
+ProductSet& ProductSet::operator=(const ProductSet& ps)  {
+  size = ps.size;
+  products = new Element*[size];
+  weights = new jfloat[size];
+  for (int i = 0; i < size; i++) {
+    products[i] = ps.products[i];
+    weights[i] = ps.weights[i];
+  }
+  total_weight = ps.total_weight;
+  return *this;
+}
+
+ProductSet::~ProductSet() {
+  if (size) {
+    delete[] products;
+    delete[] weights;
   }
 }
-// end of hack
 
-struct Transmutation {
-  jfloat probability;
-  Element* target;
-  ProductSet* product;
-};
+void ProductSet::Read(DataStream* stream, ElementTable* table) {
+  if (size) {
+    delete[] products;
+    delete[] weights;
+  }
+  size = stream->ReadJbyte();
+  products = new Element*[size];
+  weights = new jfloat[size];
+  total_weight = 0;
+  for (int i = 0; i < size; i++) {
+    jbyte ord = stream->ReadJbyte();
+    products[i] = table->GetElementByOrdinal(ord);
+  }
+  for (int i = 0; i < size; i++) {
+    weights[i] = stream->ReadJfloat();
+    total_weight += weights[i];
+  }
+}
+
+Element* ProductSet::PickProduct() {
+  if (!size) {
+    return NULL;
+  }
+  if (size == 0) {
+    return products[0];
+  }
+  RNG rng;
+  jfloat w = rng.NextFloat() * total_weight;
+  for (int i = 0; i < size; i++) {
+    if (w <= weights[i]) {
+      return products[i];
+    }
+    w -= weights[i];
+  }
+  return products[0];
+}
+
+void Transmutation::Read(DataStream* stream, ElementTable* table) {
+  jbyte ord = stream->ReadJbyte();
+  target = table->GetElementByOrdinal(ord);
+  probability = stream->ReadJfloat();
+  products.Read(stream, table);
+}
 
 
 struct Point {
@@ -200,6 +427,7 @@ struct Sandbox {
   jint h;
   jint iteration;
   RNG rng;
+  ElementTable* elements;
 
   // 2D map of element pointers. NULL means no particle.
   Grid<Point> points;
@@ -213,17 +441,43 @@ struct Sandbox {
     this->w = w;
     this->h = h;
     this->java_ref = java_ref;
-    // FIXME: I don't know how to release this.
+    elements = new ElementTable();
     jintArray localPixelsRef = (jintArray) env->NewIntArray(w * h);
     pixels = (jintArray) env->NewGlobalRef(localPixelsRef);
     env->DeleteLocalRef(localPixelsRef);
   }
 
   ~Sandbox() {
+    delete elements;
     JNIEnv *env;
     jvm->AttachCurrentThread(&env, NULL);
     env->DeleteGlobalRef(pixels);
     env->DeleteGlobalRef(java_ref);
+  }
+
+  void Read(DataStream* stream) {
+    LOG("reading version");
+    jfloat version = stream->ReadJfloat();
+    LOG("serialization version: %f", version);
+    if (version != 1.6f) {
+      // TODO: throw exception
+      LOG("  can't parse this version");
+      return;
+    }
+    delete elements;
+    elements = new ElementTable();
+    elements->Read(stream);
+  }
+
+  void Resize(jint w, jint h) {
+    JNIEnv *env;
+    jvm->AttachCurrentThread(&env, NULL);
+    env->DeleteGlobalRef(pixels);
+    this->w = w;
+    this->h = h;
+    jintArray localPixelsRef = (jintArray) env->NewIntArray(w * h);
+    pixels = (jintArray) env->NewGlobalRef(localPixelsRef);
+    env->DeleteLocalRef(localPixelsRef);
   }
 
   static SandboxList::Node Lookup(JNIEnv* env, jobject thiz) {
@@ -275,24 +529,21 @@ struct Sandbox {
     if (!jelement) {
       return NULL;
     }
-    // TODO: ndk hack!
-    static jfieldID colorFid;
-    if (!colorFid) {
+    static jfieldID idFid;
+    if (!idFid) {
       jclass cls = env->GetObjectClass(jelement);
-      colorFid = env->GetFieldID(cls, "color", "I");
+      idFid = env->GetFieldID(cls, "id", "C");
     }
-    jint color = env->GetIntField(jelement, colorFid);
-    for (Element** e = defaultElements; *e; e++) {
-      if ((*e)->color == color) {
-        return *e;
-      }
-    }
-    return NULL;
+    jchar id = env->GetCharField(jelement, idFid);
+    return elements->GetElementById(id);
   }
 
   void SetParticle(jint x, jint y, Element* elem) {
+    if (elem != points[x][y].element) {
+      points[x][y].last_changed = iteration;
+    }
+    points[x][y].last_set = iteration;
     points[x][y] = elem;
-    points[x][y].last_changed = iteration;
   }
 
   void SetParticle(jint x, jint y, Element* elem, jint radius, jfloat prob) {
@@ -373,37 +624,31 @@ struct Sandbox {
 
         jint cur_last_set = points[x][y].last_set;
 
-        // TODO: Transmutations
-        /*
         // Transmutations.
-        if (e.transmutationCount > 0 && curLastSet != iteration) {
-          for (int i = 0; i < NEIGHBORS.length; i++) {
+        if (e->transmutation_count > 0 && cur_last_set != iteration) {
+          for (int i = 0; i < sizeof(NEIGHBORS) / sizeof(NEIGHBORS[0]); i++) {
             int nx = x + NEIGHBORS[i][0];
             int ny = y + NEIGHBORS[i][1];
-            if (nx >= 0 && nx < width && ny >= 0 & ny < height && lastSet[nx][ny] != iteration) {
-              Element t = elements[nx][ny];
-              if (t != null) {
-                Element o = elementTable.maybeTransmutate(e, t);
-                if (o != elements[nx][ny]) {
-                  setParticle(nx, ny, o);
+            if (nx >= 0 && nx < w && ny >= 0 & ny < h && points[nx][ny].last_set != iteration) {
+              Element* t = points[nx][ny].element;
+              if (t) {
+                Element* o = elements->MaybeTransmutate(e, t);
+                if (o != points[nx][ny].element) {
+                  SetParticle(nx, ny, o);
                 }
               }
             }
           }
         }
-        */
 
-        // TODO: Decay
-        /*
         // Decay.
-        if (curLastSet != iteration && e.decayProbability > 0 && RNG.nextFloat() < e.decayProbability) {
-          ages[x][y]++;
-          if (ages[x][y] > e.lifetime) {
-            setParticle(x, y, e.decayProducts == null ? null : e.decayProducts.pickProduct());
+        if (cur_last_set != iteration && e->decay_probability > 0 && rng.NextFloat() < e->decay_probability) {
+          points[x][y].age++;
+          if (points[x][y].age > e->lifetime) {
+            SetParticle(x, y, e->decay_products.PickProduct());
             continue;
           }
         }
-        */
 
         if (!e->mobile || cur_last_set == iteration) {
           continue;
@@ -474,7 +719,7 @@ struct Sandbox {
         *p = points[x][y].element ? points[x][y].element->color : 0xff000000;
       }
     }
-    env->ReleasePrimitiveArrayCritical(pixels, pixelData, 0);
+    env->ReleasePrimitiveArrayCritical(pixels, pixelData, NULL);
     return (jintArray) env->NewLocalRef(pixels);
   }
 };
@@ -543,9 +788,7 @@ void Java_com_loganh_sandblaster_NativeSandBox_line__Lcom_loganh_sandblaster_Ele
  * Signature: ()V
  */
 void Java_com_loganh_sandblaster_NativeSandBox_update(JNIEnv* env, jobject thiz) {
-  LOG("Iterate start");
   Sandbox::Get(env, thiz)->Iterate();
-  LOG("Iterate return");
 }
 
 
@@ -565,14 +808,24 @@ void Java_com_loganh_sandblaster_NativeSandBox_clear(JNIEnv* env, jobject thiz) 
  * Signature: ()[I
  */
 jintArray Java_com_loganh_sandblaster_NativeSandBox_getPixels(JNIEnv* env, jobject thiz) {
-  LOG("GetPixels start");
   jintArray pixels = Sandbox::Get(env, thiz)->GetPixels(env);
-  LOG("GetPixels return");
   return pixels;
 }
 
+/*
+ * Class:     com_loganh_sandblaster_NativeSandBox
+ * Method:    readFromBytes
+ * Signature: ([B)V
+ */
+void Java_com_loganh_sandblaster_NativeSandBox_readFromBytes(JNIEnv* env, jobject thiz, jbyteArray bytes) {
+  Sandbox* sandbox = Sandbox::Get(env, thiz);
+  // Instantiating a DataStream enters a critical section, so no JNI interaction until we delete it.
+  DataStream* stream = new DataStream(env, bytes);
+  sandbox->Read(stream);
+  delete stream;
+}
+
 jint JNI_OnLoad(JavaVM* jvm, void* res) {
-  initDefaultElements();
   return JNI_VERSION_1_2;
 }
 
